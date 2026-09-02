@@ -1,0 +1,22 @@
+{
+    "bots": [
+        {
+            "token": "YOUR_TOKEN_1_HERE",
+            "guildId": "GUILD_ID_1",
+            "channelId": "VOICE_CHANNEL_ID_1",
+            "muted": false,
+            "deafened": false,
+            "streaming": false,
+            "camera": false
+        },
+        {
+            "token": "YOUR_TOKEN_2_HERE",
+            "guildId": "GUILD_ID_2",
+            "channelId": "VOICE_CHANNEL_ID_2",
+            "muted": true,
+            "deafened": true,
+            "streaming": true,
+            "camera": true
+        }
+    ]
+}

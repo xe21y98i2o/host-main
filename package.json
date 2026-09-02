@@ -1,0 +1,16 @@
+{
+  "name": "vc-keepalive",
+  "version": "1.0.0",
+  "main": "vc-keepalive.js",
+  "scripts": {
+    "start": "node vc-keepalive.js",
+    "rpc": "node rpc-client.js"
+  },
+  "dependencies": {
+    "discord.js-selfbot-v13": "^3.4.0",
+    "@discordjs/voice": "^0.16.1",
+    "libsodium-wrappers": "^0.7.13",
+    "debug": "*",
+    "discord-rpc": "^4.0.1"
+  }
+}

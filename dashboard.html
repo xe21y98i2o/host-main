@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VC Keep Alive - Multi</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+    font-family:'Inter',sans-serif;
+    background:#0a0a1a; min-height:100vh; color:#fff;
+    padding:30px 20px;
+}
+#particles {
+    position:fixed; top:0; left:0; width:100%; height:100%;
+    pointer-events:none; z-index:0;
+    background:radial-gradient(ellipse at 20% 50%, rgba(102,126,234,0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 50%, rgba(118,75,162,0.08) 0%, transparent 50%);
+}
+.particle {
+    position:absolute; border-radius:50%;
+    background:rgba(102,126,234,0.12); animation:float linear infinite;
+}
+@keyframes float {
+    0% { transform:translateY(100vh) scale(0); opacity:0; }
+    10% { opacity:1; }
+    90% { opacity:1; }
+    100% { transform:translateY(-10vh) scale(1); opacity:0; }
+}
+.header-wrap {
+    position:relative; z-index:1; max-width:1200px; margin:0 auto 30px;
+    text-align:center;
+}
+h1 {
+    font-weight:700; font-size:28px; margin-bottom:6px;
+    background:linear-gradient(135deg,#667eea,#764ba2,#f093fb);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.subtitle { color:rgba(255,255,255,0.3); font-size:13px; }
+.url-bar {
+    display:flex; gap:8px; max-width:480px; margin:16px auto 0;
+}
+.url-bar input {
+    flex:1; padding:10px 16px; border-radius:10px; border:1px solid rgba(255,255,255,0.1);
+    background:rgba(0,0,0,0.4); color:#fff; font-size:13px; outline:none;
+    transition:border-color 0.3s;
+}
+.url-bar input:focus { border-color:rgba(102,126,234,0.5); }
+.url-bar input::placeholder { color:rgba(255,255,255,0.2); }
+.btn-connect {
+    padding:10px 20px; border:none; border-radius:10px; font-size:12px; font-weight:600;
+    cursor:pointer; background:linear-gradient(135deg,#667eea,#764ba2); color:#fff;
+    transition:all 0.3s;
+}
+.btn-connect:hover { transform:translateY(-2px); box-shadow:0 8px 25px rgba(102,126,234,0.3); }
+.grid {
+    position:relative; z-index:1;
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr));
+    gap:16px; max-width:1200px; margin:0 auto;
+}
+.card {
+    background:rgba(255,255,255,0.03); backdrop-filter:blur(20px);
+    border-radius:20px; padding:22px;
+    border:1px solid rgba(255,255,255,0.06);
+    transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+    position:relative; overflow:hidden;
+}
+.card::before {
+    content:''; position:absolute; top:0; left:0; width:100%; height:2px;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent);
+}
+.card:hover { transform:translateY(-3px); border-color:rgba(255,255,255,0.12); }
+.card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.card-title { font-weight:600; font-size:15px; }
+.badge {
+    font-size:10px; padding:4px 10px; border-radius:20px; text-transform:uppercase; letter-spacing:0.5px;
+}
+.badge.on { background:rgba(74,222,128,0.15); color:#4ade80; }
+.badge.off { background:rgba(248,113,113,0.15); color:#f87171; }
+.card-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
+.stat {
+    background:rgba(0,0,0,0.25); border-radius:10px; padding:10px; text-align:center;
+    border:1px solid rgba(255,255,255,0.03);
+}
+.stat-label { font-size:9px; text-transform:uppercase; letter-spacing:0.8px; color:rgba(255,255,255,0.25); margin-bottom:4px; }
+.stat-value { font-size:13px; font-weight:600; }
+.dot-indicator {
+    display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px;
+    position:relative;
+}
+.dot-indicator::after {
+    content:''; position:absolute; inset:-3px; border-radius:50%;
+    animation:ripple 2s ease-out infinite;
+}
+.dot-indicator.on { background:#4ade80; box-shadow:0 0 10px rgba(74,222,128,0.4); }
+.dot-indicator.on::after { border:1px solid rgba(74,222,128,0.2); }
+.dot-indicator.off { background:#f87171; box-shadow:0 0 10px rgba(248,113,113,0.4); }
+.dot-indicator.off::after { border:1px solid rgba(248,113,113,0.2); }
+@keyframes ripple { 0% { transform:scale(1); opacity:1; } 100% { transform:scale(2.5); opacity:0; } }
+.toggle-group { display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
+.toggle {
+    flex:1; padding:7px; border:none; border-radius:8px; font-size:10px; font-weight:600;
+    cursor:pointer; transition:all 0.3s; text-transform:uppercase; letter-spacing:0.3px;
+}
+.toggle:hover { transform:translateY(-1px); }
+.toggle-mute { background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; }
+.toggle-mute.active { background:linear-gradient(135deg,#ef4444,#dc2626); }
+.toggle-deaf { background:linear-gradient(135deg,#8b5cf6,#7c3aed); color:#fff; }
+.toggle-deaf.active { background:linear-gradient(135deg,#ef4444,#dc2626); }
+.toggle-stream { background:linear-gradient(135deg,#3b82f6,#1d4ed8); color:#fff; }
+.toggle-stream.active { background:linear-gradient(135deg,#10b981,#059669); color:#fff; }
+.toggle-cam { background:linear-gradient(135deg,#ec4899,#db2777); color:#fff; }
+.toggle-cam.active { background:linear-gradient(135deg,#10b981,#059669); color:#fff; }
+.card-actions { display:flex; gap:6px; }
+.btn {
+    flex:1; padding:9px; border:none; border-radius:9px; font-size:11px; font-weight:600;
+    cursor:pointer; transition:all 0.3s ease; text-transform:uppercase; letter-spacing:0.3px;
+}
+.btn:hover { transform:translateY(-2px); }
+.btn-reconnect { background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; }
+.btn-restart { background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; }
+.btn-stop { background:linear-gradient(135deg,#ef4444,#dc2626); color:#fff; }
+.logs-wrap {
+    position:relative; z-index:1;
+    max-width:1200px; margin:24px auto 0;
+}
+.logs-box {
+    background:rgba(0,0,0,0.35); border-radius:14px; padding:16px;
+    max-height:180px; overflow-y:auto; border:1px solid rgba(255,255,255,0.04);
+}
+.logs-box::-webkit-scrollbar { width:4px; }
+.logs-box::-webkit-scrollbar-track { background:transparent; }
+.logs-box::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:2px; }
+.log-entry {
+    font-family:'Courier New',monospace; font-size:11px;
+    color:rgba(255,255,255,0.45); padding:3px 0;
+    border-bottom:1px solid rgba(255,255,255,0.015);
+    animation:fadeIn 0.3s ease;
+}
+.log-entry:first-child { color:rgba(255,255,255,0.85); }
+@keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+.footer { position:relative; z-index:1; text-align:center; margin-top:20px; }
+.footer-inner { font-size:11px; color:rgba(255,255,255,0.1); }
+.btn-stop { margin-top:6px; padding:6px 18px; border:none; border-radius:8px; font-size:10px; font-weight:600; cursor:pointer; background:linear-gradient(135deg,#ef4444,#dc2626); color:#fff; text-transform:uppercase; letter-spacing:0.5px; transition:all 0.3s; }
+.btn-stop:hover { transform:translateY(-1px); opacity:0.9; }
+@media (max-width:600px) { .grid { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div id="particles"></div>
+<div class="header-wrap">
+    <h1>🎧 VC Keep Alive</h1>
+    <p class="subtitle">Multi-Account Discord Voice Controller</p>
+    <div class="url-bar">
+        <input type="text" id="apiUrl" placeholder="https://your-project.up.railway.app" spellcheck="false">
+        <button class="btn-connect" onclick="saveUrl()">Connect</button>
+    </div>
+</div>
+<div class="grid" id="grid">
+    <div style="grid-column:1/-1;text-align:center;padding:60px 0;color:rgba(255,255,255,0.15);font-size:14px;">
+        Enter your Railway URL above and click Connect
+    </div>
+</div>
+<div class="logs-wrap">
+    <div class="logs-box" id="logsBox"><div class="log-entry">Waiting...</div></div>
+</div>
+<div class="footer"><div class="footer-inner">Railway · Multi-Account</div><button class="btn-stop" onclick="if(confirm('Stop all bots and shut down the host?'))fetch(apiBase+'/shutdown')">⏻ Stop Host</button></div>
+<script>
+let apiBase = localStorage.getItem('railwayUrl') || 'https://host-production-1e7e.up.railway.app';
+document.getElementById('apiUrl').value = apiBase;
+
+function saveUrl() {
+    apiBase = document.getElementById('apiUrl').value.replace(/\/+$/, '');
+    localStorage.setItem('railwayUrl', apiBase);
+    update();
+}
+
+async function api(path) {
+    if (!apiBase) return null;
+    try {
+        const r = await fetch(apiBase + path, { signal: AbortSignal.timeout(5000) });
+        return await r.json();
+    } catch { return null; }
+}
+
+function escape(s) {
+    if (!s) return '-';
+    return String(s).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[m]);
+}
+
+async function update() {
+    if (!apiBase) return;
+    const data = await api('/status');
+    const grid = document.getElementById('grid');
+    if (!data) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 0;color:rgba(255,255,255,0.2);font-size:14px;">Cannot connect to server</div>';
+        return;
+    }
+    const logsBox = document.getElementById('logsBox');
+    logsBox.innerHTML = (data.logs||[]).map(l => '<div class="log-entry">'+escape(l)+'</div>').join('') || '<div class="log-entry">No logs</div>';
+
+    if (!data.bots || !data.bots.length) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 0;color:rgba(255,255,255,0.15);font-size:14px;">No bots configured</div>';
+        return;
+    }
+    grid.innerHTML = data.bots.map((b,i) => `
+        <div class="card" style="${b.stopped?'opacity:0.4':''}">
+            <div class="card-header">
+                <span class="card-title">${escape(b.user)||'Account #'+(i+1)}</span>
+                <span class="badge ${b.stopped?'off':(b.connected?'on':'off')}">${b.stopped?'Stopped':(b.connected?'Online':'Offline')}</span>
+            </div>
+            <div class="card-grid">
+                <div class="stat"><div class="stat-label">User</div><div class="stat-value">${escape(b.user)||'-'}</div></div>
+                <div class="stat"><div class="stat-label">Voice</div><div class="stat-value"><span class="dot-indicator ${b.stopped?'off':(b.inVoice?'on':'off')}"></span>${b.stopped?'-':(b.inVoice?'In Voice':'Silent')}</div></div>
+                <div class="stat"><div class="stat-label">Guild</div><div class="stat-value" style="font-size:11px">${b.stopped?'-':escape(b.guildName)}</div></div>
+                <div class="stat"><div class="stat-label">Channel</div><div class="stat-value" style="font-size:11px">${b.stopped?'-':escape(b.channelName)}</div></div>
+            </div>
+            ${!b.stopped?`
+            <div class="toggle-group">
+                <button class="toggle toggle-mute${b.muted?' active':''}" onclick="fetch(apiBase+'/mute/${i}/${b.muted?0:1}')">🎤 ${b.muted?'Muted':'Mute'}</button>
+                <button class="toggle toggle-deaf${b.deafened?' active':''}" onclick="fetch(apiBase+'/deaf/${i}/${b.deafened?0:1}')">🔇 ${b.deafened?'Deafened':'Deafen'}</button>
+                <button class="toggle toggle-stream${b.streaming?' active':''}" onclick="fetch(apiBase+'/stream/${i}/${b.streaming?0:1}')">📺 ${b.streaming?'ON':'Stream'}</button>
+                <button class="toggle toggle-cam${b.camera?' active':''}" onclick="fetch(apiBase+'/cam/${i}/${b.camera?0:1}')">📷 ${b.camera?'ON':'Cam'}</button>
+            </div>
+            `:''}
+            <div class="card-actions">
+                ${!b.stopped?'<button class="btn btn-reconnect" onclick="fetch(apiBase+\'/reconnect/'+i+'\')">Reconnect</button>':''}
+                <button class="btn btn-restart" onclick="fetch(apiBase+'/restart/${i}')">Restart</button>
+                <button class="btn btn-stop" onclick="if(confirm('Stop bot #${i+1}?'))fetch(apiBase+'/stop/${i}')">⏻ Stop</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+const particlesContainer = document.getElementById('particles');
+for (let i = 0; i < 20; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 6 + 2;
+    p.style.width = size + 'px'; p.style.height = size + 'px';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDuration = (Math.random() * 15 + 10) + 's';
+    p.style.animationDelay = (Math.random() * 15) + 's';
+    particlesContainer.appendChild(p);
+}
+
+if (apiBase) { setInterval(update, 3000); update(); }
+</script>
+</body>
+</html>
