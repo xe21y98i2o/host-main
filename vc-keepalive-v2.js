@@ -265,12 +265,6 @@ class BotInstance {
             }
             this.setPresence();
             setInterval(() => this.setPresence(), 120000);
-            setInterval(() => {
-                if (this.guildId && this.channelId && this.connected && !this.inVoice) {
-                    addLog(`[${this.index+1}] Keepalive: not in VC — rejoining`, this.index);
-                    this.joinVC();
-                }
-            }, 30000);
         });
         this.client.on('voiceStateUpdate', (oldState, newState) => {
             if (!oldState || !oldState.member || !this.client.user) return;
@@ -465,12 +459,6 @@ class BotInstance {
                 leaveOnEnd: false,
                 leaveOnIdle: false,
             });
-            this.connection.on('stateChange', (oldState, newState) => {
-                if (newState.status === 'destroyed') {
-                    addLog(`[${this.index+1}] Connection destroyed — rejoining in 3s`, this.index);
-                    setTimeout(() => { if (this.guildId && this.channelId) this.joinVC(); }, 3000);
-                }
-            });
             this.inVoice = true;
             this.channelName = channel.name;
             addLog(`[${this.index+1}] Joined: ${channel.name}`, this.index);
@@ -500,12 +488,6 @@ class BotInstance {
                 leaveOnEmpty: false,
                 leaveOnEnd: false,
                 leaveOnIdle: false,
-            });
-            this.connection.on('stateChange', (oldState, newState) => {
-                if (newState.status === 'destroyed') {
-                    addLog(`[${this.index+1}] Connection destroyed — rejoining in 3s`, this.index);
-                    setTimeout(() => { if (this.guildId && channelId) this.joinChannel(channelId); }, 3000);
-                }
             });
             this.inVoice = true;
             this.channelId = channelId;
