@@ -1216,19 +1216,20 @@ process.on('unhandledRejection', e => {
 server.listen(PORT, () => console.log('Web panel on port ' + PORT));
 async function startupPull() {
     const https = require('https');
+    addLog(`Startup pull: GITHUB_TOKEN=${GITHUB_TOKEN ? 'SET' : 'MISSING'} GITHUB_REPO=${GITHUB_REPO}`, null);
     const pullFile = async (filename) => {
         if (!GITHUB_TOKEN) return;
         const fs = require('fs');
         const filePath = require('path').join(__dirname, filename);
-        if (fs.existsSync(filePath)) return;
+        if (fs.existsSync(filePath)) { addLog(`Startup pull: ${filename} exists locally, skipping`, null); return; }
         try {
             const data = await new Promise((resolve, reject) => {
                 const opts = { hostname: 'api.github.com', path: `/repos/${GITHUB_REPO}/contents/${filename}`, headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'User-Agent': 'VC-KeepAlive' } };
-                https.get(opts, res => { let d = ''; res.on('data', c => d += c); res.on('end', () => { try { const j = JSON.parse(d); resolve(Buffer.from(j.content, 'base64').toString('utf8')); } catch { resolve(null); } }); }).on('error', reject);
+                https.get(opts, res => { let d = ''; res.on('data', c => d += c); res.on('end', () => { addLog(`Startup pull: ${filename} response ${res.statusCode}`, null); try { const j = JSON.parse(d); if (j.content) { resolve(Buffer.from(j.content, 'base64').toString('utf8')); } else { addLog(`Startup pull: ${filename} no content field: ${d.substring(0, 200)}`, null); resolve(null); } } catch (e) { addLog(`Startup pull: ${filename} parse error: ${e.message}`, null); resolve(null); } }); }).on('error', (e) => { addLog(`Startup pull: ${filename} network error: ${e.message}`, null); reject(e); });
             });
             if (data) {
                 fs.writeFileSync(filePath, data);
-                addLog(`Pulled ${filename} from GitHub`, null);
+                addLog(`Startup pull: ${filename} saved (${data.length} bytes)`, null);
             }
         } catch (e) { addLog(`Failed to pull ${filename}: ${e.message}`, null); }
     };
