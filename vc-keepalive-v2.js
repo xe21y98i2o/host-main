@@ -64,7 +64,9 @@ class WatchlistManager {
                 exportedAt: Date.now()
             };
             require('fs').writeFileSync(WATCHLIST_FILE, JSON.stringify(data, null, 2));
-            pushFileToGitHub('watchlist.json', data);
+            if (!this._saveTimer) {
+                this._saveTimer = setTimeout(() => { this._saveTimer = null; pushFileToGitHub('watchlist.json', data); }, 500);
+            }
         } catch (e) {}
     }
     toggleEnabled() {
@@ -750,9 +752,17 @@ function loadAccountsFile() {
 function saveAccountsFile(accounts) {
     try {
         require('fs').writeFileSync(accountsFile, JSON.stringify(accounts, null, 2));
-        pushToGitHub(accounts);
         return true;
     } catch (e) { addLog(`Error saving accounts.json: ${e.message}`, null); return false; }
+}
+
+async function saveAndPushAccounts(accounts) {
+    try {
+        require('fs').writeFileSync(accountsFile, JSON.stringify(accounts, null, 2));
+        addLog(`Saved ${accounts.length} accounts to accounts.json`, null);
+        await pushToGitHub(accounts);
+        return true;
+    } catch (e) { addLog(`Error saving accounts: ${e.message}`, null); return false; }
 }
 
 async function pushToGitHub(accounts) {
@@ -860,10 +870,8 @@ const server = http.createServer(async (req, res) => {
         const body = await readBody(req);
         try {
             const accounts = textToAccounts(body);
-            if (saveAccountsFile(accounts)) {
-                addLog(`Saved ${accounts.length} accounts to accounts.json`, null);
-                return res.end('ok');
-            }
+            await saveAndPushAccounts(accounts);
+            return res.end('ok');
         } catch (e) { return res.end('error: ' + e.message); }
         return res.end('error');
     }
