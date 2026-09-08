@@ -1192,11 +1192,10 @@ async function startupPull() {
         if (!GITHUB_TOKEN) return;
         const fs = require('fs');
         const filePath = require('path').join(__dirname, filename);
-        if (fs.existsSync(filePath)) { addLog(`Startup pull: ${filename} exists locally, skipping`, null); return; }
         try {
             const data = await new Promise((resolve, reject) => {
                 const opts = { hostname: 'api.github.com', path: `/repos/${GITHUB_REPO}/contents/${filename}`, headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'User-Agent': 'VC-KeepAlive' } };
-                https.get(opts, res => { let d = ''; res.on('data', c => d += c); res.on('end', () => { addLog(`Startup pull: ${filename} response ${res.statusCode}`, null); try { const j = JSON.parse(d); if (j.content) { resolve(Buffer.from(j.content, 'base64').toString('utf8')); } else { addLog(`Startup pull: ${filename} no content field: ${d.substring(0, 200)}`, null); resolve(null); } } catch (e) { addLog(`Startup pull: ${filename} parse error: ${e.message}`, null); resolve(null); } }); }).on('error', (e) => { addLog(`Startup pull: ${filename} network error: ${e.message}`, null); reject(e); });
+                https.get(opts, res => { let d = ''; res.on('data', c => d += c); res.on('end', () => { addLog(`Startup pull: ${filename} response ${res.statusCode}`, null); try { const j = JSON.parse(d); if (j.content) { resolve(Buffer.from(j.content, 'base64').toString('utf8')); } else { addLog(`Startup pull: ${filename} no content: ${d.substring(0, 100)}`, null); resolve(null); } } catch (e) { addLog(`Startup pull: ${filename} parse error: ${e.message}`, null); resolve(null); } }); }).on('error', (e) => { addLog(`Startup pull: ${filename} error: ${e.message}`, null); reject(e); });
             });
             if (data) {
                 fs.writeFileSync(filePath, data);
