@@ -704,29 +704,7 @@ function loadBots() {
         });
         return;
     }
-    Object.keys(process.env).forEach(key => {
-        const m = key.match(/^TOKEN_(\d+)$/);
-        if (!m) return;
-        const i = m[1];
-        const token = process.env[key];
-        const guildId = process.env[`GUILD_${i}`];
-        const channelId = process.env[`CHANNEL_${i}`];
-        if (token && guildId && channelId) {
-            addLog(`Loading bot #${i} (TOKEN_${i})`, null);
-            const bot = new BotInstance(token, bots.length);
-            bot.tokenVar = 'TOKEN_' + i;
-            if (guildId) bot.guildId = guildId;
-            if (channelId) bot.channelId = channelId;
-            bots.push(bot);
-        } else {
-            addLog(`Skipping TOKEN_${i}: missing GUILD_${i} or CHANNEL_${i}`, null);
-        }
-    });
-    bots.forEach(b => {
-        if (!b.presence && process.env.DEFAULT_PRESENCE) {
-            try { b.presence = JSON.parse(process.env.DEFAULT_PRESENCE); b.setPresence(); } catch (e) { addLog(`Invalid DEFAULT_PRESENCE: ${e.message}`, null); }
-        }
-    });
+    addLog('No accounts found in accounts.json — save tokens from dashboard', null);
 }
 
 function maskToken(t) {
