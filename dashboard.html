@@ -3,249 +3,1195 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VC Keep Alive - Multi</title>
+<title>VC Keep Alive</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-* { margin:0; padding:0; box-sizing:border-box; }
-body {
-    font-family:'Inter',sans-serif;
-    background:#0a0a1a; min-height:100vh; color:#fff;
-    padding:30px 20px;
-}
-#particles {
-    position:fixed; top:0; left:0; width:100%; height:100%;
-    pointer-events:none; z-index:0;
-    background:radial-gradient(ellipse at 20% 50%, rgba(102,126,234,0.08) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 50%, rgba(118,75,162,0.08) 0%, transparent 50%);
-}
-.particle {
-    position:absolute; border-radius:50%;
-    background:rgba(102,126,234,0.12); animation:float linear infinite;
-}
-@keyframes float {
-    0% { transform:translateY(100vh) scale(0); opacity:0; }
-    10% { opacity:1; }
-    90% { opacity:1; }
-    100% { transform:translateY(-10vh) scale(1); opacity:0; }
-}
-.header-wrap {
-    position:relative; z-index:1; max-width:1200px; margin:0 auto 30px;
-    text-align:center;
-}
-h1 {
-    font-weight:700; font-size:28px; margin-bottom:6px;
-    background:linear-gradient(135deg,#667eea,#764ba2,#f093fb);
-    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-}
-.subtitle { color:rgba(255,255,255,0.3); font-size:13px; }
-.url-bar {
-    display:flex; gap:8px; max-width:480px; margin:16px auto 0;
-}
-.url-bar input {
-    flex:1; padding:10px 16px; border-radius:10px; border:1px solid rgba(255,255,255,0.1);
-    background:rgba(0,0,0,0.4); color:#fff; font-size:13px; outline:none;
-    transition:border-color 0.3s;
-}
-.url-bar input:focus { border-color:rgba(102,126,234,0.5); }
-.url-bar input::placeholder { color:rgba(255,255,255,0.2); }
-.btn-connect {
-    padding:10px 20px; border:none; border-radius:10px; font-size:12px; font-weight:600;
-    cursor:pointer; background:linear-gradient(135deg,#667eea,#764ba2); color:#fff;
-    transition:all 0.3s;
-}
-.btn-connect:hover { transform:translateY(-2px); box-shadow:0 8px 25px rgba(102,126,234,0.3); }
-.grid {
-    position:relative; z-index:1;
-    display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr));
-    gap:16px; max-width:1200px; margin:0 auto;
-}
-.card {
-    background:rgba(255,255,255,0.03); backdrop-filter:blur(20px);
-    border-radius:20px; padding:22px;
-    border:1px solid rgba(255,255,255,0.06);
-    transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
-    position:relative; overflow:hidden;
-}
-.card::before {
-    content:''; position:absolute; top:0; left:0; width:100%; height:2px;
-    background:linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent);
-}
-.card:hover { transform:translateY(-3px); border-color:rgba(255,255,255,0.12); }
-.card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
-.card-title { font-weight:600; font-size:15px; }
-.badge {
-    font-size:10px; padding:4px 10px; border-radius:20px; text-transform:uppercase; letter-spacing:0.5px;
-}
-.badge.on { background:rgba(74,222,128,0.15); color:#4ade80; }
-.badge.off { background:rgba(248,113,113,0.15); color:#f87171; }
-.card-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
-.stat {
-    background:rgba(0,0,0,0.25); border-radius:10px; padding:10px; text-align:center;
-    border:1px solid rgba(255,255,255,0.03);
-}
-.stat-label { font-size:9px; text-transform:uppercase; letter-spacing:0.8px; color:rgba(255,255,255,0.25); margin-bottom:4px; }
-.stat-value { font-size:13px; font-weight:600; }
-.dot-indicator {
-    display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px;
-    position:relative;
-}
-.dot-indicator::after {
-    content:''; position:absolute; inset:-3px; border-radius:50%;
-    animation:ripple 2s ease-out infinite;
-}
-.dot-indicator.on { background:#4ade80; box-shadow:0 0 10px rgba(74,222,128,0.4); }
-.dot-indicator.on::after { border:1px solid rgba(74,222,128,0.2); }
-.dot-indicator.off { background:#f87171; box-shadow:0 0 10px rgba(248,113,113,0.4); }
-.dot-indicator.off::after { border:1px solid rgba(248,113,113,0.2); }
-@keyframes ripple { 0% { transform:scale(1); opacity:1; } 100% { transform:scale(2.5); opacity:0; } }
-.toggle-group { display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
-.toggle {
-    flex:1; padding:7px; border:none; border-radius:8px; font-size:10px; font-weight:600;
-    cursor:pointer; transition:all 0.3s; text-transform:uppercase; letter-spacing:0.3px;
-}
-.toggle:hover { transform:translateY(-1px); }
-.toggle-mute { background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; }
-.toggle-mute.active { background:linear-gradient(135deg,#ef4444,#dc2626); }
-.toggle-deaf { background:linear-gradient(135deg,#8b5cf6,#7c3aed); color:#fff; }
-.toggle-deaf.active { background:linear-gradient(135deg,#ef4444,#dc2626); }
-.toggle-stream { background:linear-gradient(135deg,#3b82f6,#1d4ed8); color:#fff; }
-.toggle-stream.active { background:linear-gradient(135deg,#10b981,#059669); color:#fff; }
-.toggle-cam { background:linear-gradient(135deg,#ec4899,#db2777); color:#fff; }
-.toggle-cam.active { background:linear-gradient(135deg,#10b981,#059669); color:#fff; }
-.card-actions { display:flex; gap:6px; }
-.btn {
-    flex:1; padding:9px; border:none; border-radius:9px; font-size:11px; font-weight:600;
-    cursor:pointer; transition:all 0.3s ease; text-transform:uppercase; letter-spacing:0.3px;
-}
-.btn:hover { transform:translateY(-2px); }
-.btn-reconnect { background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; }
-.btn-restart { background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; }
-.btn-stop { background:linear-gradient(135deg,#ef4444,#dc2626); color:#fff; }
-.logs-wrap {
-    position:relative; z-index:1;
-    max-width:1200px; margin:24px auto 0;
-}
-.logs-box {
-    background:rgba(0,0,0,0.35); border-radius:14px; padding:16px;
-    max-height:180px; overflow-y:auto; border:1px solid rgba(255,255,255,0.04);
-}
-.logs-box::-webkit-scrollbar { width:4px; }
-.logs-box::-webkit-scrollbar-track { background:transparent; }
-.logs-box::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:2px; }
-.log-entry {
-    font-family:'Courier New',monospace; font-size:11px;
-    color:rgba(255,255,255,0.45); padding:3px 0;
-    border-bottom:1px solid rgba(255,255,255,0.015);
-    animation:fadeIn 0.3s ease;
-}
-.log-entry:first-child { color:rgba(255,255,255,0.85); }
-@keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
-.footer { position:relative; z-index:1; text-align:center; margin-top:20px; }
-.footer-inner { font-size:11px; color:rgba(255,255,255,0.1); }
-.btn-stop { margin-top:6px; padding:6px 18px; border:none; border-radius:8px; font-size:10px; font-weight:600; cursor:pointer; background:linear-gradient(135deg,#ef4444,#dc2626); color:#fff; text-transform:uppercase; letter-spacing:0.5px; transition:all 0.3s; }
-.btn-stop:hover { transform:translateY(-1px); opacity:0.9; }
-@media (max-width:600px) { .grid { grid-template-columns:1fr; } }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--black:#000000;--white:#ffffff;--gray:#111;--gray2:#1a1a1a;--gray3:#2a2a2a;--dim:#444;--faint:#666;--glow:rgba(255,255,255,0.9)}
+body{font-family:'Inter',sans-serif;background:var(--black);min-height:100vh;color:var(--white);overflow-x:hidden;display:flex}
+
+@keyframes lightning{0%{opacity:0}3%{opacity:.12}6%{opacity:0}9%{opacity:.06}12%{opacity:0}100%{opacity:0}}
+@keyframes glowPulse{0%,100%{filter:brightness(1) drop-shadow(0 0 6px rgba(255,255,255,0.2))}50%{filter:brightness(1.4) drop-shadow(0 0 24px rgba(255,255,255,0.9))}}
+@keyframes slideIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeGlow{0%,100%{box-shadow:0 0 8px rgba(255,255,255,0.03)}50%{box-shadow:0 0 30px rgba(255,255,255,0.12)}}
+@keyframes borderGlow{0%,100%{border-color:var(--gray3)}50%{border-color:rgba(255,255,255,0.3)}}
+@keyframes scanline{0%{top:-100%}100%{top:200%}}
+@keyframes textGlow{0%,100%{text-shadow:0 0 4px rgba(255,255,255,0.15)}50%{text-shadow:0 0 24px rgba(255,255,255,0.9),0 0 48px rgba(255,255,255,0.3)}}
+@keyframes flashIn{0%{background:rgba(255,255,255,0.1)}100%{background:transparent}}
+@keyframes iconPulse{0%,100%{transform:scale(1);opacity:.5}50%{transform:scale(1.2);opacity:1}}
+@keyframes iconSpin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+@keyframes checkPop{0%{transform:scale(0.5)}50%{transform:scale(1.3)}100%{transform:scale(1)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes hoverGlow{0%{box-shadow:0 0 4px rgba(255,255,255,0.08)}100%{box-shadow:0 0 24px rgba(255,255,255,0.5),0 0 48px rgba(255,255,255,0.15)}}
+@keyframes selectFocus{0%{border-color:var(--gray3);box-shadow:none}100%{border-color:var(--white);box-shadow:0 0 20px rgba(255,255,255,0.4)}}
+@keyframes btnRipple{0%{transform:scale(1)}40%{transform:scale(0.93)}100%{transform:scale(1)}}
+@keyframes electricPulse{0%,100%{opacity:0}10%{opacity:.08}20%{opacity:0}30%{opacity:.04}40%{opacity:0}}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
+@keyframes cardFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes dotPing{0%{transform:scale(1);opacity:1}100%{transform:scale(2.5);opacity:0}}
+@keyframes slideRight{from{transform:translateX(-10px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes rippleWave{0%{transform:scale(0);opacity:.5}100%{transform:scale(4);opacity:0}}
+@keyframes statusPulse{0%,100%{box-shadow:0 0 4px currentColor}50%{box-shadow:0 0 16px currentColor,0 0 32px currentColor}}
+@keyframes gridReveal{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+@keyframes neonFlicker{0%,19%,21%,23%,25%,54%,56%,100%{text-shadow:0 0 8px rgba(255,255,255,0.6),0 0 24px rgba(255,255,255,0.3)}20%,24%,55%{text-shadow:none}}
+
+.lightning-bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden}
+.lightning-bg::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at 25% 15%,rgba(255,255,255,0.04) 0%,transparent 50%);animation:lightning 6s infinite}
+.lightning-bg::after{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at 75% 85%,rgba(255,255,255,0.025) 0%,transparent 50%);animation:lightning 10s 3s infinite}
+.lightning-bg .layer{position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(circle at 50% 50%,rgba(255,255,255,0.015) 0%,transparent 40%);animation:electricPulse 15s 7s infinite}
+
+.sidebar{width:260px;height:100vh;background:linear-gradient(180deg,#0a0a0a 0%,#000 100%);border-right:1px solid var(--gray3);position:fixed;left:0;top:0;z-index:100;display:flex;flex-direction:column;transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.sidebar.hidden{transform:translateX(-100%)}
+.sidebar-header{padding:24px 20px;border-bottom:1px solid var(--gray3);display:flex;align-items:center;gap:12px;position:relative;overflow:hidden}
+.sidebar-header::after{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.03),transparent);animation:shimmer 8s infinite}
+.sidebar-logo{width:42px;height:42px;background:var(--white);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:var(--black);animation:glowPulse 3s infinite;transition:all .3s}
+.sidebar-logo:hover{transform:rotate(5deg) scale(1.08);box-shadow:0 0 30px rgba(255,255,255,0.6)}
+.sidebar-title{font-size:16px;font-weight:700;letter-spacing:-0.3px;animation:textGlow 4s infinite}
+.sidebar-sub{font-size:11px;color:var(--dim);margin-top:2px}
+.sidebar-nav{flex:1;padding:12px 8px;overflow-y:auto}
+.sidebar-nav::-webkit-scrollbar{width:3px}
+.sidebar-nav::-webkit-scrollbar-thumb{background:var(--gray3);border-radius:2px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:10px;color:var(--dim);cursor:pointer;transition:all .25s;font-size:13px;font-weight:500;margin-bottom:2px;position:relative;overflow:hidden}
+.nav-item::before{content:'';position:absolute;top:0;left:0;width:0;height:100%;background:linear-gradient(90deg,rgba(255,255,255,0.06),transparent);transition:width .3s}
+.nav-item:hover::before{width:100%}
+.nav-item:hover{background:var(--gray2);color:var(--white);box-shadow:0 0 24px rgba(255,255,255,0.08)}
+.nav-item.active{background:var(--gray2);color:var(--white);border-left:2px solid var(--white);box-shadow:inset 0 0 20px rgba(255,255,255,0.03)}
+.nav-item svg{width:18px;height:18px;flex-shrink:0;transition:all .3s}
+.nav-item:hover svg{animation:iconPulse 1.2s ease infinite;filter:drop-shadow(0 0 8px rgba(255,255,255,0.6))}
+.nav-section{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--dim);padding:16px 16px 8px;font-weight:600}
+.sidebar-footer{padding:16px 20px;border-top:1px solid var(--gray3);font-size:11px;color:var(--dim)}
+
+.main{flex:1;margin-left:260px;min-height:100vh;transition:margin .3s cubic-bezier(.4,0,.2,1);position:relative;z-index:1}
+.main.full{margin-left:0}
+
+.topbar{height:60px;border-bottom:1px solid var(--gray3);display:flex;align-items:center;padding:0 24px;gap:16px;position:sticky;top:0;background:rgba(0,0,0,0.85);z-index:50;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
+.topbar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent)}
+.menu-btn{width:36px;height:36px;border:1px solid var(--gray3);background:transparent;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--white);transition:all .25s;position:relative;overflow:hidden}
+.menu-btn::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at center,rgba(255,255,255,0.1),transparent);opacity:0;transition:opacity .3s}
+.menu-btn:hover::after{opacity:1}
+.menu-btn:hover{border-color:var(--white);box-shadow:0 0 20px rgba(255,255,255,0.25)}
+.menu-btn svg{transition:all .3s}
+.menu-btn:hover svg{filter:drop-shadow(0 0 10px rgba(255,255,255,0.7));animation:iconSpin .5s ease}
+.topbar-title{font-size:14px;font-weight:600;animation:textGlow 4s infinite}
+.topbar-stats{display:flex;gap:12px;margin-left:auto}
+.topbar-actions{display:flex;align-items:center;gap:12px;margin-left:16px;padding-left:16px;border-left:1px solid var(--gray3)}
+.topbar-actions label{transition:all .2s;cursor:pointer}
+.topbar-actions label:hover{color:var(--white);text-shadow:0 0 10px rgba(255,255,255,0.5)}
+input[type="checkbox"]{width:16px;height:16px;accent-color:var(--white);cursor:pointer;transition:all .2s}
+input[type="checkbox"]:hover{filter:drop-shadow(0 0 8px rgba(255,255,255,0.6))}
+input[type="checkbox"]:checked{animation:checkPop .3s ease}
+.top-stat{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--dim)}
+.top-stat .dot{width:7px;height:7px;border-radius:50%;position:relative}
+.top-stat .dot.on{background:var(--white);box-shadow:0 0 10px var(--white),0 0 24px rgba(255,255,255,0.5);animation:glowPulse 2s infinite}
+.top-stat .dot.on::after{content:'';position:absolute;inset:-3px;border-radius:50%;border:1px solid rgba(255,255,255,0.3);animation:dotPing 2s infinite}
+.top-stat .dot.off{background:var(--dim);box-shadow:none}
+
+.content{padding:24px;max-width:1400px;margin:0 auto}
+
+.global-panel{background:linear-gradient(135deg,#0a0a0a,#111);border:1px solid var(--gray3);border-radius:16px;padding:24px;margin-bottom:24px;animation:slideIn .5s ease,fadeGlow 4s infinite;position:relative;overflow:hidden}
+.global-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent)}
+.global-panel::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,0.01),transparent 40%);pointer-events:none}
+.global-panel h3{font-size:14px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;animation:textGlow 4s infinite}
+.global-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:16px}
+.global-field label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:6px;font-weight:600}
+.global-field select,.global-field input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--gray3);background:var(--gray);color:var(--white);font-size:12px;font-family:'Inter',sans-serif;outline:none;transition:all .3s;-webkit-appearance:none}
+.global-field select:focus,.global-field input:focus{animation:selectFocus .3s ease forwards}
+.global-field select:hover,.global-field input:hover{border-color:var(--dim);box-shadow:0 0 12px rgba(255,255,255,0.06)}
+.global-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+.g-btn{padding:10px 20px;border:1px solid var(--gray3);border-radius:10px;font-size:11px;font-weight:600;cursor:pointer;transition:all .3s;text-transform:uppercase;letter-spacing:.5px;background:transparent;color:var(--white);font-family:'Inter',sans-serif;position:relative;overflow:hidden}
+.g-btn::before{content:'';position:absolute;top:50%;left:50%;width:0;height:0;background:rgba(255,255,255,0.12);border-radius:50%;transform:translate(-50%,-50%);transition:width .4s,height .4s}
+.g-btn::after{content:'';position:absolute;inset:0;border-radius:10px;opacity:0;transition:opacity .3s;box-shadow:inset 0 0 20px rgba(255,255,255,0.05)}
+.g-btn:hover{border-color:var(--white);box-shadow:0 0 24px rgba(255,255,255,0.3),0 0 48px rgba(255,255,255,0.08);background:var(--gray2)}
+.g-btn:hover::before{width:300px;height:300px}
+.g-btn:hover::after{opacity:1}
+.g-btn:active{animation:btnRipple .2s ease}
+
+.bots-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:16px;justify-items:center}
+.bot-card{background:linear-gradient(145deg,#0a0a0a,#0f0f0f);border:1px solid var(--gray3);border-radius:16px;padding:20px;transition:all .35s cubic-bezier(.4,0,.2,1);animation:slideIn .5s ease both,borderGlow 5s infinite;position:relative;overflow:hidden}
+.bot-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent);transition:background .3s}
+.bot-card::after{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.02),transparent);transition:left .6s}
+.bot-card:hover::after{left:100%}
+.bot-card:hover{border-color:rgba(255,255,255,0.4);box-shadow:0 0 40px rgba(255,255,255,0.1),0 4px 24px rgba(0,0,0,0.5);transform:translateY(-2px)}
+.bot-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.bot-info{display:flex;align-items:center;gap:12px}
+.bot-avatar{width:42px;height:42px;border-radius:11px;background:var(--white);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:var(--black);animation:glowPulse 3s infinite;transition:all .3s}
+.bot-card:hover .bot-avatar{box-shadow:0 0 28px rgba(255,255,255,0.6);transform:scale(1.08) rotate(3deg)}
+.bot-name{font-size:14px;font-weight:600}
+.bot-token{font-size:11px;color:var(--dim);margin-top:2px}
+.status-badge{font-size:10px;padding:5px 12px;border-radius:20px;text-transform:uppercase;letter-spacing:.8px;font-weight:600;border:1px solid;transition:all .3s;position:relative}
+.status-badge.on{color:var(--white);border-color:var(--white);box-shadow:0 0 12px rgba(255,255,255,0.3);animation:fadeGlow 2.5s infinite}
+.status-badge.on::before{content:'';position:absolute;inset:-2px;border-radius:22px;border:1px solid rgba(255,255,255,0.15);animation:statusPulse 3s infinite}
+.status-badge.off{color:var(--dim);border-color:var(--gray3)}
+
+.info-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.info-box{background:var(--gray2);border-radius:10px;padding:10px;text-align:center;border:1px solid var(--gray3);transition:all .25s;position:relative;overflow:hidden}
+.info-box::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at center,rgba(255,255,255,0.02),transparent);opacity:0;transition:opacity .3s}
+.info-box:hover::after{opacity:1}
+.info-box:hover{border-color:rgba(255,255,255,0.3);box-shadow:0 0 16px rgba(255,255,255,0.06);transform:translateY(-1px)}
+.info-label{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:4px;font-weight:600}
+.info-val{font-size:12px;font-weight:600}
+
+.section{margin-bottom:14px}
+.section-head{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--dim);margin-bottom:8px;font-weight:600}
+.toggle-row{display:flex;gap:6px}
+.tog{flex:1;padding:8px;border:1px solid var(--gray3);border-radius:8px;font-size:10px;font-weight:600;cursor:pointer;transition:all .3s;text-transform:uppercase;letter-spacing:.3px;color:var(--dim);background:transparent;font-family:'Inter',sans-serif;position:relative;overflow:hidden}
+.tog::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at center,rgba(255,255,255,0.08),transparent);opacity:0;transition:opacity .3s}
+.tog:hover::before{opacity:1}
+.tog:hover{border-color:var(--white);color:var(--white);box-shadow:0 0 18px rgba(255,255,255,0.15)}
+.tog.on{color:var(--white);border-color:var(--white);box-shadow:0 0 18px rgba(255,255,255,0.25);background:var(--gray2)}
+.tog:active{animation:btnRipple .2s ease}
+
+.input-row{display:flex;gap:6px;margin-bottom:8px}
+.input-row input,.input-row select{flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--gray3);background:var(--gray);color:var(--white);font-size:11px;font-family:'Inter',sans-serif;outline:none;transition:all .3s}
+.input-row input:focus{border-color:var(--white);box-shadow:0 0 16px rgba(255,255,255,0.2)}
+.btn-sm{padding:8px 14px;border:1px solid var(--gray3);border-radius:8px;font-size:10px;font-weight:600;cursor:pointer;transition:all .3s;text-transform:uppercase;letter-spacing:.3px;background:transparent;color:var(--dim);font-family:'Inter',sans-serif;position:relative;overflow:hidden}
+.btn-sm::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at center,rgba(255,255,255,0.08),transparent);opacity:0;transition:opacity .3s}
+.btn-sm:hover::before{opacity:1}
+.btn-sm:hover{border-color:var(--white);color:var(--white);box-shadow:0 0 18px rgba(255,255,255,0.15)}
+.btn-sm:active{animation:btnRipple .2s ease}
+.btn-sm.active{color:var(--white);border-color:var(--white);box-shadow:0 0 14px rgba(255,255,255,0.3)}
+
+.logs-section{background:linear-gradient(135deg,#0a0a0a,#0e0e0e);border:1px solid var(--gray3);border-radius:16px;padding:16px;margin-top:24px;max-height:300px;overflow-y:auto;position:relative}
+.logs-section::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent)}
+.logs-section::-webkit-scrollbar{width:4px}
+.logs-section::-webkit-scrollbar-track{background:transparent}
+.logs-section::-webkit-scrollbar-thumb{background:var(--gray3);border-radius:2px}
+.logs-section::-webkit-scrollbar-thumb:hover{background:var(--dim)}
+.log-line{font-family:'Courier New',monospace;font-size:11px;color:var(--dim);padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.03);transition:all .2s}
+.log-line:first-child{color:var(--white);animation:flashIn .5s ease}
+.log-line:hover{color:var(--faint);padding-left:4px}
+
+.toast{position:fixed;bottom:24px;right:24px;padding:14px 22px;background:linear-gradient(135deg,#111,#1a1a1a);border:1px solid var(--gray3);border-radius:12px;color:var(--white);font-size:13px;display:none;animation:slideIn .3s ease;box-shadow:0 8px 32px rgba(0,0,0,0.6);z-index:999}
+.toast.show{display:block;animation:fadeUp .3s ease}
+
+#radarLogs::-webkit-scrollbar{width:5px}
+#radarLogs::-webkit-scrollbar-track{background:transparent}
+#radarLogs::-webkit-scrollbar-thumb{background:var(--gray3);border-radius:3px}
+#radarLogs::-webkit-scrollbar-thumb:hover{background:var(--dim)}
+
+#vrLogs::-webkit-scrollbar{width:5px}
+#vrLogs::-webkit-scrollbar-track{background:transparent}
+#vrLogs::-webkit-scrollbar-thumb{background:var(--gray3);border-radius:3px}
+#vrLogs::-webkit-scrollbar-thumb:hover{background:var(--dim)}
+
+@media(max-width:1000px){#sec-radar>div:last-child{grid-template-columns:1fr!important}#sec-voiceradar>div:last-child{grid-template-columns:1fr!important}}
+@media(max-width:768px){.sidebar{width:100%}.sidebar.hidden{transform:translateX(-100%)}.main{margin-left:0!important}.bots-grid{grid-template-columns:1fr}.global-grid{grid-template-columns:1fr 1fr}#sec-radar>div:last-child{grid-template-columns:1fr!important}}
 </style>
 </head>
 <body>
-<div id="particles"></div>
-<div class="header-wrap">
-    <h1>🎧 VC Keep Alive</h1>
-    <p class="subtitle">Multi-Account Discord Voice Controller</p>
-    <div class="url-bar">
-        <input type="text" id="apiUrl" placeholder="https://your-project.up.railway.app" spellcheck="false">
-        <button class="btn-connect" onclick="saveUrl()">Connect</button>
-    </div>
+<div class="lightning-bg"></div>
+<aside class="sidebar" id="sidebar">
+<div class="sidebar-header">
+<div class="sidebar-logo">VC</div>
+<div><div class="sidebar-title">VC Keep Alive</div><div class="sidebar-sub">Control Panel</div></div>
 </div>
-<div class="grid" id="grid">
-    <div style="grid-column:1/-1;text-align:center;padding:60px 0;color:rgba(255,255,255,0.15);font-size:14px;">
-        Enter your Railway URL above and click Connect
-    </div>
+<nav class="sidebar-nav">
+<div class="nav-section">Navigation</div>
+<div class="nav-item active" onclick="showSection('dashboard',this)">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+Dashboard
 </div>
-<div class="logs-wrap">
-    <div class="logs-box" id="logsBox"><div class="log-entry">Waiting...</div></div>
+<div class="nav-item" onclick="showSection('global',this)">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+Global Controls
 </div>
-<div class="footer"><div class="footer-inner">Railway · Multi-Account</div><button class="btn-stop" onclick="if(confirm('Stop all bots and shut down the host?'))fetch(apiBase+'/shutdown')">⏻ Stop Host</button></div>
+<div class="nav-item" onclick="showSection('logs',this)">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+Logs
+</div>
+<div class="nav-item" onclick="showSection('accounts',this)">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+Accounts
+</div>
+<div class="nav-item" onclick="showSection('dm',this)">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+Send DM
+</div>
+<div class="nav-item" onclick="showSection('radar',this)">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/></svg>
+User Radar
+</div>
+<div class="nav-item" onclick="showSection('voiceradar',this)">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+Voice Radar
+</div>
+<div class="nav-section">Quick Actions</div>
+<div class="nav-item" onclick="globalAction('reconnectall')">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+Reconnect All
+</div>
+<div class="nav-item" onclick="globalAction('restartall')">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+Restart All
+</div>
+<div class="nav-item" onclick="globalAction('stopall')" style="color:var(--dim)">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+Stop All
+</div>
+</nav>
+<div class="sidebar-footer">Hosted on Railway</div>
+</aside>
+
+<main class="main" id="main">
+<div class="topbar">
+<button class="menu-btn" onclick="toggleSidebar()">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+<div class="topbar-title" id="pageTitle">Dashboard</div>
+<div class="topbar-stats" id="topStats"></div>
+<div class="topbar-actions">
+<label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--dim);cursor:pointer;user-select:none">
+<input type="checkbox" id="selectAll" onchange="toggleSelectAll()" style="accent-color:var(--white)">
+Select All
+</label>
+<span id="selectedCount" style="font-size:11px;color:var(--dim)">0 selected</span>
+</div>
+</div>
+
+<div class="content" id="sec-dashboard">
+<div class="bots-grid" id="grid"></div>
+</div>
+
+<div class="content" id="sec-global" style="display:none">
+<div class="global-panel">
+<h3>Global Controls</h3>
+<div class="global-grid">
+<div class="global-field"><label>Guild</label><select id="gGuild" onchange="loadGuildChannels()"><option value="">Loading...</option></select></div>
+<div class="global-field"><label>Voice Channel</label><select id="gVCh"><option value="">Select guild</option></select></div>
+<div class="global-field"><label>Text Channel</label><select id="gTCh"><option value="">Select guild</option></select></div>
+<div class="global-field"><label>Spam Interval (ms)</label><input type="number" id="gInt" value="2000" min="500"></div>
+</div>
+<div style="margin-bottom:16px"><input type="text" id="gMsg" placeholder="Message to send or spam" style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--gray3);background:var(--gray);color:var(--white);font-size:13px;font-family:Inter,sans-serif;outline:none;transition:border .2s" onfocus="this.style.borderColor='var(--white)';this.style.boxShadow='0 0 15px rgba(255,255,255,0.2)'" onblur="this.style.borderColor='var(--gray3)';this.style.boxShadow='none'"></div>
+<div class="global-actions">
+<button class="g-btn" onclick="globalAction('send')">Send All</button>
+<button class="g-btn" onclick="globalAction('join')">Join All</button>
+<button class="g-btn" onclick="globalAction('leave')">Leave All</button>
+<button class="g-btn" onclick="globalAction('spam')">Spam All</button>
+<button class="g-btn" onclick="globalAction('stopspam')">Stop Spam</button>
+<button class="g-btn" onclick="globalAction('muteall')">Mute All</button>
+<button class="g-btn" onclick="globalAction('unmuteall')">Unmute All</button>
+<button class="g-btn" onclick="globalAction('reconnectall')">Reconnect All</button>
+<button class="g-btn" onclick="globalAction('restartall')">Restart All</button>
+<button class="g-btn" onclick="globalAction('stopall')">Stop All</button>
+</div>
+</div>
+<div class="global-panel" style="margin-top:16px">
+<h3>Voice Sniper</h3>
+<p style="font-size:11px;color:var(--dim);margin-bottom:12px">Auto-join a voice channel when a target user leaves it</p>
+<div style="display:flex;gap:8px;margin-bottom:12px">
+<select id="sniperBot" style="padding:8px 12px;border-radius:8px;border:1px solid var(--gray3);background:var(--gray);color:var(--white);font-size:12px;font-family:Inter,sans-serif;outline:none;min-width:140px"><option value="">Select bot</option></select>
+<input type="text" id="sniperTarget" placeholder="Target User ID" style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--gray3);background:var(--gray);color:var(--white);font-size:12px;font-family:Inter,sans-serif;outline:none">
+<input type="text" id="sniperChannel" placeholder="Voice Channel ID" style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--gray3);background:var(--gray);color:var(--white);font-size:12px;font-family:Inter,sans-serif;outline:none">
+</div>
+<div style="display:flex;gap:8px">
+<button class="g-btn" onclick="setSniper()">Start Sniper</button>
+<button class="g-btn" onclick="clearSniper()">Stop Sniper</button>
+</div>
+<div id="sniperStatus" style="margin-top:8px;font-size:11px;color:var(--dim)"></div>
+</div>
+</div>
+
+<div class="content" id="sec-voiceradar" style="display:none">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<div style="display:flex;align-items:center;gap:12px">
+<div style="font-size:20px;font-weight:700;color:var(--white)">Voice<span style="color:var(--dim)">Radar</span></div>
+<button id="voiceRadarToggleBtn" onclick="toggleVoiceRadar()" class="btn-sm" style="padding:5px 14px;font-size:11px;font-weight:600;letter-spacing:.3px;text-transform:uppercase">ON</button>
+</div>
+<div style="display:flex;gap:8px;align-items:center">
+<button class="btn-sm" onclick="clearVoiceRadarLogs()" style="padding:6px 14px;border-color:var(--gray3);color:var(--white)">Clear Logs</button>
+<button class="btn-sm" onclick="showSection('dashboard')" style="padding:6px 14px;border-color:var(--gray3);color:var(--dim)">Close</button>
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 480px;gap:20px;align-items:start">
+<div>
+<div style="background:var(--gray2);border:1px solid var(--gray3);border-radius:12px;overflow:hidden">
+<div style="padding:14px 20px;border-bottom:1px solid var(--gray3);display:flex;justify-content:space-between;align-items:center;background:var(--gray)">
+<div style="display:flex;align-items:center;gap:8px">
+<span style="font-weight:600;font-size:15px">Monitored Channels</span>
+<span style="color:var(--dim);font-size:13px" id="vrChannelCount">(0)</span>
+</div>
+</div>
+
+<div style="background:var(--gray2);border-bottom:1px solid var(--gray3);padding:12px 20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+<select id="vrGuildSelect" onchange="loadVRVoiceChannels(this.value)" style="padding:8px 12px;border-radius:8px;border:1px solid var(--gray3);background:var(--gray);color:var(--white);font-size:12px;font-family:Inter,sans-serif;outline:none;min-width:160px;cursor:pointer">
+<option value="">Select server</option>
+</select>
+<select id="vrVoiceSelect" style="padding:8px 12px;border-radius:8px;border:1px solid var(--gray3);background:var(--gray);color:var(--white);font-size:12px;font-family:Inter,sans-serif;outline:none;min-width:160px;cursor:pointer">
+<option value="">Select voice channel</option>
+</select>
+<button class="g-btn" onclick="addVRSelected()" style="padding:8px 20px;font-size:13px">Add Selected</button>
+</div>
+
+<div style="background:var(--gray2);border-bottom:1px solid var(--gray3);padding:10px 20px;display:flex;gap:12px;align-items:center">
+<div style="font-size:12px;color:var(--dim)">Monitoring Bots:</div>
+<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center" id="vrBotSelector"><span style="color:var(--dim);font-size:11px">Loading...</span></div>
+</div>
+
+<div id="vrChannelList" style="max-height:500px;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px">
+<div style="text-align:center;padding:40px;color:var(--dim)">No channels monitored</div>
+</div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:20px">
+<div style="background:var(--gray2);border:1px solid var(--gray3);border-radius:12px;flex:1;display:flex;flex-direction:column;overflow:hidden">
+<div style="padding:16px 20px;border-bottom:1px solid var(--gray3);display:flex;align-items:center;justify-content:space-between;background:var(--gray)" id="vrLogHeader">
+<div style="display:flex;align-items:center;gap:10px">
+<div style="width:8px;height:8px;border-radius:50%;background:var(--white);box-shadow:0 0 8px rgba(255,255,255,0.5);animation:glowPulse 2s infinite"></div>
+<span style="font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase">Voice Activity</span>
+</div>
+<span style="font-size:11px;color:var(--dim);font-family:monospace" id="vrLogCount">0 events</span>
+</div>
+<div id="vrLogs" style="flex:1;max-height:600px;overflow-y:auto;font-family:'Inter',sans-serif;font-size:12px;background:var(--black);scroll-behavior:smooth">
+<div style="padding:40px;color:var(--dim);text-align:center;font-size:13px">Select a channel to view activity</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="content" id="sec-logs" style="display:none">
+<div class="logs-section" id="logsBox"><div class="log-line">Connecting...</div></div>
+</div>
+
+<div class="content" id="sec-accounts" style="display:none">
+<div class="global-panel">
+<h3>Accounts Manager</h3>
+<p style="font-size:12px;color:var(--dim);margin-bottom:16px">One token per line. Guild and Channel still use GUILD_X / CHANNEL_X env vars on Railway.</p>
+<textarea id="accountsText" style="width:100%;height:300px;padding:16px;border-radius:12px;border:1px solid var(--gray3);background:var(--gray);color:var(--white);font-family:'Courier New',monospace;font-size:12px;outline:none;resize:vertical;transition:border .2s" onfocus="this.style.borderColor='var(--white)';this.style.boxShadow='0 0 15px rgba(255,255,255,0.2)'" onblur="this.style.borderColor='var(--gray3)';this.style.boxShadow='none'" placeholder="# One token per line&#10;MTIz...abc&#10;MTQz...def&#10;MTEx...ghi"></textarea>
+<div style="display:flex;gap:8px;margin-top:12px">
+<button class="g-btn" onclick="saveAccounts()">Save Accounts</button>
+<button class="g-btn" onclick="loadAccounts()">Refresh</button>
+<button class="g-btn" onclick="downloadAccounts()">Download TXT</button>
+<label class="g-btn" style="cursor:pointer">Upload TXT<input type="file" accept=".txt" style="display:none" onchange="uploadAccounts(this)"></label>
+</div>
+</div>
+</div>
+
+<div class="content" id="sec-dm" style="display:none">
+<div class="global-panel">
+<h3>Send DM</h3>
+<div style="display:flex;gap:8px;margin-bottom:16px">
+<select id="dmBot" style="padding:8px 12px;border-radius:8px;border:1px solid var(--gray3);background:var(--gray);color:var(--white);font-size:12px;font-family:Inter,sans-serif;outline:none;min-width:140px"><option value="">Select bot</option></select>
+<input type="text" id="dmUserId" placeholder="User ID" style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--gray3);background:var(--gray);color:var(--white);font-size:12px;font-family:Inter,sans-serif;outline:none">
+</div>
+<textarea id="dmContent" style="width:100%;height:120px;padding:12px;border-radius:10px;border:1px solid var(--gray3);background:var(--gray);color:var(--white);font-size:12px;font-family:Inter,sans-serif;outline:none;resize:vertical;transition:border .2s;margin-bottom:12px" onfocus="this.style.borderColor='var(--white)';this.style.boxShadow='0 0 15px rgba(255,255,255,0.2)'" onblur="this.style.borderColor='var(--gray3)';this.style.boxShadow='none'" placeholder="Type your DM message..."></textarea>
+<div style="display:flex;gap:8px">
+<button class="g-btn" onclick="sendDM()">Send DM</button>
+<button class="g-btn" onclick="document.getElementById('dmContent').value=''">Clear</button>
+</div>
+<div id="dmStatus" style="margin-top:12px;font-size:12px;color:var(--dim)"></div>
+</div>
+<div class="global-panel" style="margin-top:16px">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+<h3 style="margin:0">Received DMs</h3>
+<div style="display:flex;gap:8px;align-items:center">
+<select id="dmInboxBot" onchange="loadDMs()" style="padding:6px 12px;border-radius:8px;border:1px solid var(--gray3);background:var(--gray);color:var(--white);font-size:11px;font-family:Inter,sans-serif;outline:none"><option value="">Select bot</option></select>
+<button class="btn-sm" onclick="clearDMs()" style="padding:6px 12px;border-color:var(--red);color:var(--red)">Clear All</button>
+</div>
+</div>
+<div id="dmInbox" style="max-height:400px;overflow-y:auto;display:flex;flex-direction:column;gap:8px"></div>
+</div>
+</div>
+
+<div class="content" id="sec-radar" style="display:none">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<div style="display:flex;align-items:center;gap:12px">
+<div style="font-size:20px;font-weight:700;color:var(--white)">User<span style="color:var(--dim)">Radar</span></div>
+<button id="radarToggleBtn" onclick="toggleRadar()" class="btn-sm" style="padding:5px 14px;font-size:11px;font-weight:600;letter-spacing:.3px;text-transform:uppercase">ON</button>
+</div>
+<div style="display:flex;gap:8px;align-items:center">
+<button class="btn-sm" onclick="exportRadarData()" style="padding:6px 14px;border-color:var(--gray3);color:var(--white)">Export</button>
+<button class="btn-sm" onclick="document.getElementById('radarImportInput').click()" style="padding:6px 14px;border-color:var(--gray3);color:var(--white)">Import</button>
+<input type="file" id="radarImportInput" style="display:none" accept=".json" onchange="importRadarData(event)">
+<button class="btn-sm" onclick="clearRadarLogs()" style="padding:6px 14px;border-color:var(--gray3);color:var(--red)">Clear All Logs</button>
+<button class="btn-sm" onclick="showSection('dashboard')" style="padding:6px 14px;border-color:var(--gray3);color:var(--dim)">Close</button>
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 480px;gap:20px;align-items:start">
+<div>
+<div style="background:var(--gray2);border:1px solid var(--gray3);border-radius:12px;overflow:hidden">
+<div style="padding:14px 20px;border-bottom:1px solid var(--gray3);display:flex;justify-content:space-between;align-items:center;background:var(--gray)">
+<div style="display:flex;align-items:center;gap:8px">
+<span style="font-weight:600;font-size:15px">Watchlist</span>
+<span style="color:var(--dim);font-size:13px" id="radarWatchlistCount">(0)</span>
+</div>
+<span style="font-size:12px;color:var(--dim)">Global: <span id="radarGlobalPresetDisplay" style="color:var(--white)">Stalker</span></span>
+</div>
+
+<div style="background:var(--gray2);border-bottom:1px solid var(--gray3);padding:12px 20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+<input type="text" id="radarUserId" placeholder="Paste Discord User ID..." style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--gray3);background:var(--gray);color:var(--white);font-size:13px;font-family:Inter,sans-serif;outline:none;min-width:150px">
+<input type="text" id="radarLabel" placeholder="Label (optional)" style="max-width:150px;padding:8px 12px;border-radius:8px;border:1px solid var(--gray3);background:var(--gray);color:var(--white);font-size:13px;font-family:Inter,sans-serif;outline:none">
+<button class="g-btn" onclick="addRadarUser()" style="padding:8px 20px;font-size:13px">Add</button>
+</div>
+
+<div style="background:var(--gray2);border-bottom:1px solid var(--gray3);padding:10px 20px;display:flex;gap:12px;align-items:center">
+<div style="font-size:12px;color:var(--dim)">Monitoring Bots:</div>
+<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center" id="radarBotSelector"><span style="color:var(--dim);font-size:11px">Loading...</span></div>
+</div>
+
+<div id="radarList" style="max-height:600px;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px">
+<div style="text-align:center;padding:40px;color:var(--dim)">No users on watchlist</div>
+</div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:20px">
+<div style="background:var(--gray2);border:1px solid var(--gray3);border-radius:12px;padding:16px 20px">
+<div style="font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;font-weight:600">Quick Presets</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="radarPresetButtons">
+<button onclick="setRadarGlobalPreset('stalker')" class="radar-preset-btn" data-preset="stalker" style="padding:10px;border:1px solid var(--gray3);border-radius:8px;background:var(--gray);color:var(--white);cursor:pointer;text-align:center;font-size:13px;font-family:Inter,sans-serif;transition:all .2s">Stalker <span style="display:block;font-size:10px;color:var(--dim);margin-top:2px">Every event</span></button>
+<button onclick="setRadarGlobalPreset('lite')" class="radar-preset-btn" data-preset="lite" style="padding:10px;border:1px solid var(--gray3);border-radius:8px;background:var(--gray);color:var(--white);cursor:pointer;text-align:center;font-size:13px;font-family:Inter,sans-serif;transition:all .2s">Lite <span style="display:block;font-size:10px;color:var(--dim);margin-top:2px">Essentials only</span></button>
+<button onclick="setRadarGlobalPreset('silent')" class="radar-preset-btn" data-preset="silent" style="padding:10px;border:1px solid var(--gray3);border-radius:8px;background:var(--gray);color:var(--white);cursor:pointer;text-align:center;font-size:13px;font-family:Inter,sans-serif;transition:all .2s">Silent <span style="display:block;font-size:10px;color:var(--dim);margin-top:2px">No pings</span></button>
+<button onclick="setRadarGlobalPreset('custom')" class="radar-preset-btn" data-preset="custom" style="padding:10px;border:1px solid var(--gray3);border-radius:8px;background:var(--gray);color:var(--white);cursor:pointer;text-align:center;font-size:13px;font-family:Inter,sans-serif;transition:all .2s">Custom <span style="display:block;font-size:10px;color:var(--dim);margin-top:2px">Per-user control</span></button>
+</div>
+<div style="font-size:11px;color:var(--dim);margin-top:8px" id="radarPresetWarning"></div>
+</div>
+
+<div style="background:var(--gray2);border:1px solid var(--gray3);border-radius:12px;flex:1;display:flex;flex-direction:column;overflow:hidden">
+<div style="padding:16px 20px;border-bottom:1px solid var(--gray3);display:flex;align-items:center;justify-content:space-between;background:var(--gray)" id="radarLogHeader">
+<div style="display:flex;align-items:center;gap:10px">
+<div style="width:8px;height:8px;border-radius:50%;background:var(--white);box-shadow:0 0 8px rgba(255,255,255,0.5);animation:glowPulse 2s infinite"></div>
+<span style="font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase">Activity Log</span>
+</div>
+<span style="font-size:11px;color:var(--dim);font-family:monospace" id="radarLogCount">0 events</span>
+</div>
+<div id="radarLogs" style="flex:1;max-height:600px;overflow-y:auto;font-family:'Inter',sans-serif;font-size:12px;background:var(--black);scroll-behavior:smooth">
+<div style="padding:40px;color:var(--dim);text-align:center;font-size:13px">Waiting for events...</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
 <script>
-let apiBase = localStorage.getItem('railwayUrl') || 'https://host-production-1e7e.up.railway.app';
-document.getElementById('apiUrl').value = apiBase;
+var dmInterval=null;
+var radarLogInterval=null;
+var dashboardInterval=null;
+var sniperNotifyPlayed=false;
+function playNotifySound(){
+try{
+const ctx=new(window.AudioContext||window.webkitAudioContext)();
+const osc=ctx.createOscillator();
+const gain=ctx.createGain();
+osc.connect(gain);
+gain.connect(ctx.destination);
+osc.frequency.value=880;
+osc.type='sine';
+gain.gain.value=0.3;
+osc.start();
+gain.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+0.5);
+osc.stop(ctx.currentTime+0.5);
+setTimeout(()=>{
+const osc2=ctx.createOscillator();
+const gain2=ctx.createGain();
+osc2.connect(gain2);
+gain2.connect(ctx.destination);
+osc2.frequency.value=1100;
+osc2.type='sine';
+gain2.gain.value=0.3;
+osc2.start();
+gain2.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+0.3);
+osc2.stop(ctx.currentTime+0.3);
+},150);
+}catch(e){}
+}
+function esc(s){if(!s)return'-';return String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))}
+var toastTimer=null;
+function showToast(msg){
+let t=document.getElementById('toast');
+if(!t){t=document.createElement('div');t.id='toast';t.className='toast';document.body.appendChild(t);}
+t.textContent=msg;t.className='toast show';
+clearTimeout(toastTimer);
+toastTimer=setTimeout(()=>{t.className='toast';},2500);
+}
+function doAction(path){fetch(path).then(()=>setTimeout(update,500))}
 
-function saveUrl() {
-    apiBase = document.getElementById('apiUrl').value.replace(/\/+$/, '');
-    localStorage.setItem('railwayUrl', apiBase);
-    update();
+let sidebarOpen=true;
+function toggleSidebar(){
+sidebarOpen=!sidebarOpen;
+document.getElementById('sidebar').classList.toggle('hidden',!sidebarOpen);
+document.getElementById('main').classList.toggle('full',!sidebarOpen);
+}
+function showSection(s,el){
+document.querySelectorAll('.content').forEach(e=>e.style.display='none');
+document.getElementById('sec-'+s).style.display='block';
+document.getElementById('pageTitle').textContent=s==='dashboard'?'Dashboard':s==='global'?'Global Controls':s==='dm'?'Send DM':s==='accounts'?'Accounts':s==='radar'?'User Radar':s==='voiceradar'?'Voice Radar':'Logs';
+document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
+if(el)el.classList.add('active');
+if(dmInterval){clearInterval(dmInterval);dmInterval=null;}
+if(radarLogInterval){clearInterval(radarLogInterval);radarLogInterval=null;}
+if(dashboardInterval){clearInterval(dashboardInterval);dashboardInterval=null;}
+if(s==='dm'){loadDMBots();dmInterval=setInterval(()=>{if(document.getElementById('dmInboxBot')?.value)loadDMs();},3000);}
+if(s==='radar'){loadRadar();radarLogInterval=setInterval(()=>{loadRadarLogs();loadRadarWatchlist();},3000);}
+if(s==='dashboard'){update();loadGuilds();loadAccounts();dashboardInterval=setInterval(()=>{update();},5000);}
+if(s==='logs'){update();dashboardInterval=setInterval(()=>{update();},5000);}
+if(s==='voiceradar'){loadVRGuilds();loadVoiceRadar();vrRefresh=setInterval(()=>{if(vrSelectedChannel)loadVRLogs();},3000);}
 }
 
-async function api(path) {
-    if (!apiBase) return null;
-    try {
-        const r = await fetch(apiBase + path, { signal: AbortSignal.timeout(5000) });
-        return await r.json();
-    } catch { return null; }
+async function update(){
+const r=await fetch('/status').catch(()=>null);
+if(!r)return;
+const d=await r.json();
+const online=(d.bots||[]).filter(b=>b.connected).length;
+const inVC=(d.bots||[]).filter(b=>b.inVoice).length;
+document.getElementById('topStats').innerHTML=`
+<div class="top-stat"><span class="dot ${online>0?'on':'off'}"></span>${online} Online</div>
+<div class="top-stat"><span class="dot ${inVC>0?'on':'off'}"></span>${inVC} In Voice</div>
+<div class="top-stat"><span class="dot off"></span>${(d.bots||[]).length} Total</div>`;
+document.getElementById('grid').innerHTML=d.bots&&d.bots.length?d.bots.map((b,i)=>`
+<div class="bot-card" style="animation-delay:${i*.06}s;${b.stopped?'opacity:.3':''}">
+<div class="bot-header">
+<div class="bot-info">
+<label style="cursor:pointer;display:flex;align-items:center;gap:8px">
+<input type="checkbox" class="bot-check" data-index="${i}" onchange="updateSelected()" style="accent-color:var(--white);width:16px;height:16px">
+<div class="bot-avatar">${(b.user||'?')[0].toUpperCase()}</div>
+</label>
+<div><div class="bot-name">${esc(b.user)||'Bot #'+(i+1)}</div><div class="bot-token">Bot ${i+1}</div></div>
+</div>
+<span class="status-badge ${b.stopped?'off':(b.connected?'on':'off')}">${b.stopped?'Stopped':(b.connected?'Online':'Offline')}</span>
+</div>
+<div class="info-row">
+<div class="info-box"><div class="info-label">Voice</div><div class="info-val" style="${b.inVoice?'text-shadow:0 0 10px rgba(255,255,255,0.5)':''}">${b.inVoice?'Connected':'Silent'}</div></div>
+<div class="info-box"><div class="info-label">Channel</div><div class="info-val">${esc(b.channelName)||'-'}</div></div>
+<div class="info-box"><div class="info-label">Guild</div><div class="info-val">${esc(b.guildName)||'Not set'}</div></div>
+<div class="info-box"><div class="info-label">State</div><div class="info-val">${b.muted?'Muted':b.deafened?'Deafened':'Active'}</div></div>
+</div>
+<div class="section"><div class="section-head">Select Server</div>
+<div class="input-row">
+<select id="gsel${i}" style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--gray3);background:var(--gray);color:var(--white);font-size:11px;font-family:Inter,sans-serif;outline:none" onchange="setBotGuild(${i})"><option value="">Loading...</option></select>
+</div></div>
+<div class="section"><div class="section-head">Voice</div>
+<div class="toggle-row">
+<button class="tog ${b.muted?'on':''}" onclick="doAction('/mute/${i}/${b.muted?0:1}')">Mute</button>
+<button class="tog ${b.deafened?'on':''}" onclick="doAction('/deaf/${i}/${b.deafened?0:1}')">Deafen</button>
+<button class="tog ${b.streaming?'on':''}" onclick="doAction('/stream/${i}/${b.streaming?0:1}')">Stream</button>
+<button class="tog ${b.camera?'on':''}" onclick="doAction('/cam/${i}/${b.camera?0:1}')">Camera</button>
+</div></div>
+<div class="section"><div class="section-head">Stream URL</div>
+<div class="input-row">
+<input type="text" id="surl${i}" placeholder="Video URL (optional, uses default if empty)" style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--gray3);background:var(--gray);color:var(--white);font-size:11px;font-family:Inter,sans-serif;outline:none" value="${esc(b.streamUrl||'')}" onchange="setStreamUrl(${i},this.value)">
+</div></div>
+<div class="section"><div class="section-head">Join Voice</div>
+<div class="input-row">
+<select id="vsel${i}" style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--gray3);background:var(--gray);color:var(--white);font-size:11px;font-family:Inter,sans-serif;outline:none"><option value="">Select server first</option></select>
+<button class="btn-sm" onclick="joinCh(${i})">Join</button>
+<button class="btn-sm" onclick="doAction('/leave/${i}')">Leave</button>
+</div></div>
+<div class="section"><div class="section-head">Send Message</div>
+<div class="input-row">
+<input type="text" id="tsel${i}" placeholder="Text Channel ID" style="max-width:140px">
+<input type="text" id="minp${i}" placeholder="Message..." onkeydown="if(event.key==='Enter')sendMsg(${i})">
+<button class="btn-sm" onclick="sendMsg(${i})">Send</button>
+</div></div>
+<div class="section"><div class="section-head">Spammer</div>
+<div class="input-row">
+<input type="text" id="smsg${i}" placeholder="Spam message" style="flex:2">
+<input type="number" id="sint${i}" value="2000" min="500" placeholder="ms" style="max-width:90px">
+<button class="btn-sm" onclick="startSpam(${i})">Start</button>
+<button class="btn-sm" onclick="doAction('/spam/stop/${i}')">Stop</button>
+</div></div>
+<div class="section"><div class="section-head">Actions</div>
+<div class="input-row">
+<button class="btn-sm" onclick="doAction('/reconnect/${i}')">Reconnect</button>
+<button class="btn-sm" onclick="doAction('/restart/${i}')">Restart</button>
+<button class="btn-sm" onclick="if(confirm('Stop bot #${i+1}?'))doAction('/stop/${i}')">Stop</button>
+</div></div>
+</div>`).join(''):'<div style="text-align:center;padding:60px;color:var(--dim)">No bots configured</div>';
+document.getElementById('logsBox').innerHTML=(d.logs||[]).map(l=>'<div class="log-line">'+esc(l)+'</div>').join('')||'<div class="log-line">No logs</div>';
+const sniperLogs=(d.logs||[]).filter(l=>l.includes('Sniper: target'));
+if(sniperLogs.length>0&&sniperLogs[0]!==window._lastSniperLog){window._lastSniperLog=sniperLogs[0];playNotifySound();const st=document.getElementById('sniperStatus');if(st)st.innerHTML='<span style="color:var(--white)">'+esc(sniperLogs[0])+'</span>';}
+loadBotGuilds();
 }
 
-function escape(s) {
-    if (!s) return '-';
-    return String(s).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[m]);
+function joinCh(i){const v=document.getElementById('vsel'+i)?.value?.trim();if(v)doAction('/join/'+i+'/'+v)}
+function sendMsg(i){const ch=document.getElementById('tsel'+i)?.value?.trim();const m=document.getElementById('minp'+i)?.value?.trim();if(!ch||!m)return;fetch('/message/'+i+'/'+ch,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:m})}).then(()=>{document.getElementById('minp'+i).value='';setTimeout(update,500)})}
+function startSpam(i){const ch=document.getElementById('tsel'+i)?.value?.trim();const m=document.getElementById('smsg'+i)?.value?.trim();const iv=Math.max(500,parseInt(document.getElementById('sint'+i)?.value)||2000);if(!ch||!m)return;fetch('/spam/start/'+i+'/'+ch,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:m,interval:iv})}).then(()=>setTimeout(update,500))}
+function setStreamUrl(i,url){fetch('/streamurl/'+i,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:url})}).then(()=>setTimeout(update,500))}
+
+function getSelectedBots(){const checks=document.querySelectorAll('.bot-check:checked');return Array.from(checks).map(c=>parseInt(c.dataset.index))}
+function toggleSelectAll(){const sel=document.getElementById('selectAll').checked;document.querySelectorAll('.bot-check').forEach(c=>c.checked=sel);updateSelected()}
+function updateSelected(){
+const sel=getSelectedBots();
+document.getElementById('selectedCount').textContent=sel.length+' selected';
+document.getElementById('selectAll').checked=sel.length>0&&sel.length===document.querySelectorAll('.bot-check').length;
 }
 
-async function update() {
-    if (!apiBase) return;
-    const data = await api('/status');
-    const grid = document.getElementById('grid');
-    if (!data) {
-        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 0;color:rgba(255,255,255,0.2);font-size:14px;">Cannot connect to server</div>';
-        return;
-    }
-    const logsBox = document.getElementById('logsBox');
-    logsBox.innerHTML = (data.logs||[]).map(l => '<div class="log-entry">'+escape(l)+'</div>').join('') || '<div class="log-entry">No logs</div>';
+async function globalAction(action){
+const vCh=document.getElementById('gVCh')?.value?.trim()||'';
+const tCh=document.getElementById('gTCh')?.value?.trim()||'';
+const msg=document.getElementById('gMsg')?.value?.trim()||'';
+const interval=Math.max(500,parseInt(document.getElementById('gInt')?.value)||2000);
+const selected=getSelectedBots();
+const r=await fetch('/status').catch(()=>null);if(!r)return;const d=await r.json();
+const targets=selected.length>0?selected:Array.from({length:(d.bots||[]).length},(_,i)=>i);
+for(const i of targets){
+if(action==='send'&&tCh&&msg)fetch('/message/'+i+'/'+tCh,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:msg})});
+if(action==='join'&&vCh)doAction('/join/'+i+'/'+vCh);
+if(action==='leave')doAction('/leave/'+i);
+if(action==='spam'&&tCh&&msg)fetch('/spam/start/'+i+'/'+tCh,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:msg,interval})});
+if(action==='stopspam')doAction('/spam/stop/'+i);
+if(action==='muteall')doAction('/mute/'+i+'/1');
+if(action==='unmuteall')doAction('/mute/'+i+'/0');
+if(action==='reconnectall')doAction('/reconnect/'+i);
+if(action==='restartall')doAction('/restart/'+i);
+if(action==='stopall')doAction('/stop/'+i);
+}setTimeout(update,800);
+}
+async function loadGuilds(){const r=await fetch('/guilds/0').catch(()=>null);if(!r)return;const g=await r.json();const s=document.getElementById('gGuild');if(s)s.innerHTML=g.length?g.map(x=>'<option value="'+x.id+'">'+esc(x.name)+'</option>').join(''):'<option>No guilds</option>';if(g.length)loadGuildChannels()}
+async function loadGuildChannels(){const gid=document.getElementById('gGuild')?.value;if(!gid)return;const r=await fetch('/guildchannels/0/'+gid).catch(()=>null);if(!r)return;const d=await r.json();const v=document.getElementById('gVCh');const t=document.getElementById('gTCh');if(v)v.innerHTML=d.voice.length?d.voice.map(c=>'<option value="'+c.id+'">'+esc(c.name)+'</option>').join(''):'<option>None</option>';if(t)t.innerHTML=d.text.length?d.text.map(c=>'<option value="'+c.id+'">'+esc(c.name)+'</option>').join(''):'<option>None</option>'}
 
-    if (!data.bots || !data.bots.length) {
-        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 0;color:rgba(255,255,255,0.15);font-size:14px;">No bots configured</div>';
-        return;
-    }
-    grid.innerHTML = data.bots.map((b,i) => `
-        <div class="card" style="${b.stopped?'opacity:0.4':''}">
-            <div class="card-header">
-                <span class="card-title">${escape(b.user)||'Account #'+(i+1)}</span>
-                <span class="badge ${b.stopped?'off':(b.connected?'on':'off')}">${b.stopped?'Stopped':(b.connected?'Online':'Offline')}</span>
-            </div>
-            <div class="card-grid">
-                <div class="stat"><div class="stat-label">User</div><div class="stat-value">${escape(b.user)||'-'}</div></div>
-                <div class="stat"><div class="stat-label">Voice</div><div class="stat-value"><span class="dot-indicator ${b.stopped?'off':(b.inVoice?'on':'off')}"></span>${b.stopped?'-':(b.inVoice?'In Voice':'Silent')}</div></div>
-                <div class="stat"><div class="stat-label">Guild</div><div class="stat-value" style="font-size:11px">${b.stopped?'-':escape(b.guildName)}</div></div>
-                <div class="stat"><div class="stat-label">Channel</div><div class="stat-value" style="font-size:11px">${b.stopped?'-':escape(b.channelName)}</div></div>
-            </div>
-            ${!b.stopped?`
-            <div class="toggle-group">
-                <button class="toggle toggle-mute${b.muted?' active':''}" onclick="fetch(apiBase+'/mute/${i}/${b.muted?0:1}')">🎤 ${b.muted?'Muted':'Mute'}</button>
-                <button class="toggle toggle-deaf${b.deafened?' active':''}" onclick="fetch(apiBase+'/deaf/${i}/${b.deafened?0:1}')">🔇 ${b.deafened?'Deafened':'Deafen'}</button>
-                <button class="toggle toggle-stream${b.streaming?' active':''}" onclick="fetch(apiBase+'/stream/${i}/${b.streaming?0:1}')">📺 ${b.streaming?'ON':'Stream'}</button>
-                <button class="toggle toggle-cam${b.camera?' active':''}" onclick="fetch(apiBase+'/cam/${i}/${b.camera?0:1}')">📷 ${b.camera?'ON':'Cam'}</button>
-            </div>
-            `:''}
-            <div class="card-actions">
-                ${!b.stopped?'<button class="btn btn-reconnect" onclick="fetch(apiBase+\'/reconnect/'+i+'\')">Reconnect</button>':''}
-                <button class="btn btn-restart" onclick="fetch(apiBase+'/restart/${i}')">Restart</button>
-                <button class="btn btn-stop" onclick="if(confirm('Stop bot #${i+1}?'))fetch(apiBase+'/stop/${i}')">⏻ Stop</button>
-            </div>
-        </div>
-    `).join('');
+async function loadAccounts(){const r=await fetch('/accounts').catch(()=>null);if(!r)return;const t=await r.text();document.getElementById('accountsText').value=t}
+async function saveAccounts(){const t=document.getElementById('accountsText').value;const r=await fetch('/accounts',{method:'POST',body:t}).catch(()=>null);if(r){const d=await r.text();if(d==='ok'){loadAccounts();alert('Saved & pushed to GitHub! Railway will auto-redeploy.')}else alert('Error: '+d)}}
+function downloadAccounts(){window.open('/accounts/download','_blank')}
+function uploadAccounts(input){const f=input.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{document.getElementById('accountsText').value=e.target.result};r.readAsText(f);input.value=''}
+
+async function loadDMBots(){
+const r=await fetch('/status').catch(()=>null);if(!r)return;const d=await r.json();
+const sel=document.getElementById('dmBot');
+const sel2=document.getElementById('dmInboxBot');
+const opts='<option value="">Select bot</option>'+(d.bots||[]).map((b,i)=>'<option value="'+i+'">'+esc(b.user||'Bot #'+(i+1))+'</option>').join('');
+if(sel)sel.innerHTML=opts;
+if(sel2)sel2.innerHTML=opts;
+}
+async function loadDMs(){
+const bot=document.getElementById('dmInboxBot')?.value;
+const inbox=document.getElementById('dmInbox');
+if(!inbox)return;
+if(!bot){inbox.innerHTML='<div style="text-align:center;padding:40px;color:var(--dim)">Select a bot</div>';return;}
+const r=await fetch('/dms/'+bot).catch(()=>null);if(!r)return;
+const dms=await r.json();
+inbox.innerHTML=dms.length?dms.map(m=>`
+<div style="padding:10px;border-radius:8px;border:1px solid var(--gray3);background:var(--gray);transition:all .2s" onmouseover="this.style.borderColor='var(--white)'" onmouseout="this.style.borderColor='var(--gray3)'">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+<span style="font-size:12px;font-weight:600">${esc(m.from)}</span>
+<div style="display:flex;align-items:center;gap:8px">
+<span style="font-size:10px;color:var(--dim)">${esc(m.time)}</span>
+<button onclick="deleteDM('${m.id}')" style="padding:2px 8px;border:1px solid var(--red);border-radius:4px;background:transparent;color:var(--red);font-size:9px;cursor:pointer;font-family:Inter,sans-serif;transition:all .2s" onmouseover="this.style.background='var(--red)';this.style.color='var(--black)'" onmouseout="this.style.background='transparent';this.style.color='var(--red)'">Delete</button>
+</div>
+</div>
+<div style="font-size:12px;color:var(--white);word-break:break-word">${esc(m.content)}${m.attachments?'<span style="color:var(--dim);font-size:10px"> ['+m.attachments+' attachment'+(m.attachments>1?'s':'')+']</span>':''}</div>
+<div style="font-size:10px;color:var(--dim);margin-top:2px">ID: ${esc(m.fromId)}</div>
+</div>`).join(''):'<div style="text-align:center;padding:40px;color:var(--dim)">No DMs received yet</div>';
+}
+async function deleteDM(msgId){
+const bot=document.getElementById('dmInboxBot')?.value;
+if(!bot)return;
+if(!confirm('Delete this DM?'))return;
+const r=await fetch('/dm/delete/'+bot+'/'+msgId).catch(()=>null);
+if(r){const d=await r.text();if(d==='ok')loadDMs();else alert(d);}
+}
+async function clearDMs(){
+const bot=document.getElementById('dmInboxBot')?.value;
+if(!bot)return;
+if(!confirm('Clear all DMs from inbox?'))return;
+const r=await fetch('/dms/'+bot).catch(()=>null);if(!r)return;
+const dms=await r.json();
+for(const m of dms){await fetch('/dm/delete/'+bot+'/'+m.id,{method:'POST'}).catch(()=>{});}
+loadDMs();
+}
+async function sendDM(){
+const bot=document.getElementById('dmBot')?.value;
+const userId=document.getElementById('dmUserId')?.value?.trim();
+const content=document.getElementById('dmContent')?.value?.trim();
+const status=document.getElementById('dmStatus');
+if(!bot){if(status)status.innerHTML='<span style="color:var(--red)">Select a bot</span>';return;}
+if(!userId){if(status)status.innerHTML='<span style="color:var(--red)">Enter a user ID</span>';return;}
+if(!content){if(status)status.innerHTML='<span style="color:var(--red)">Enter a message</span>';return;}
+if(status)status.innerHTML='<span style="color:var(--dim)">Sending...</span>';
+const r=await fetch('/dm/'+bot,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId,content})}).catch(()=>null);
+if(r){const d=await r.text();if(d==='ok'){if(status)status.innerHTML='<span style="color:var(--white)">DM sent!</span>';document.getElementById('dmContent').value='';}else{if(status)status.innerHTML='<span style="color:var(--red)">'+esc(d)+'</span>';}}
 }
 
-const particlesContainer = document.getElementById('particles');
-for (let i = 0; i < 20; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    const size = Math.random() * 6 + 2;
-    p.style.width = size + 'px'; p.style.height = size + 'px';
-    p.style.left = Math.random() * 100 + '%';
-    p.style.animationDuration = (Math.random() * 15 + 10) + 's';
-    p.style.animationDelay = (Math.random() * 15) + 's';
-    particlesContainer.appendChild(p);
+async function setBotGuild(i){
+const sel=document.getElementById('gsel'+i);
+if(!sel||!sel.value)return;
+fetch('/setguild/'+i+'/'+sel.value).then(()=>{
+loadBotVoiceChannels(i,sel.value);
+setTimeout(update,500);
+});
+}
+async function loadBotGuilds(){
+const r=await fetch('/status').catch(()=>null);if(!r)return;const d=await r.json();
+for(let i=0;i<(d.bots||[]).length;i++){
+const gr=await fetch('/guilds/'+i).catch(()=>null);if(!gr)continue;
+const guilds=await gr.json();
+const sel=document.getElementById('gsel'+i);
+if(sel){
+sel.innerHTML=guilds.length?'<option value="">Select server</option>'+guilds.map(g=>'<option value="'+g.id+'"'+(d.bots[i].guildId===g.id?' selected':'')+'>'+esc(g.name)+'</option>').join(''):'<option>No servers</option>';
+}
+if(d.bots[i].guildId){loadBotVoiceChannels(i,d.bots[i].guildId);}
+}
+}
+async function loadBotVoiceChannels(i,guildId){
+if(!guildId){const vsel=document.getElementById('vsel'+i);if(vsel)vsel.innerHTML='<option value="">Select server first</option>';return;}
+const r=await fetch('/guildchannels/'+i+'/'+guildId).catch(()=>null);if(!r)return;
+const data=await r.json();
+const vsel=document.getElementById('vsel'+i);
+if(vsel)vsel.innerHTML=data.voice.length?data.voice.map(c=>'<option value="'+c.id+'">'+esc(c.name)+'</option>').join(''):'<option>No voice channels</option>';
 }
 
-if (apiBase) { setInterval(update, 3000); update(); }
+update();loadGuilds();loadAccounts();loadDMBots();loadSniperBots();dashboardInterval=setInterval(()=>{update();},5000);
+
+async function loadSniperBots(){
+const r=await fetch('/status').catch(()=>null);if(!r)return;const d=await r.json();
+const sel=document.getElementById('sniperBot');
+if(sel)sel.innerHTML='<option value="">Select bot</option>'+(d.bots||[]).map((b,i)=>'<option value="'+i+'">'+esc(b.user||'Bot #'+(i+1))+'</option>').join('');
+}
+async function setSniper(){
+const bot=document.getElementById('sniperBot')?.value;
+const target=document.getElementById('sniperTarget')?.value?.trim();
+const channel=document.getElementById('sniperChannel')?.value?.trim();
+const status=document.getElementById('sniperStatus');
+if(!bot||!target||!channel){if(status)status.innerHTML='<span style="color:var(--red)">Fill all fields</span>';return;}
+const r=await fetch('/sniper/'+bot,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({targetUserId:target,channelId:channel})}).catch(()=>null);
+if(r){const d=await r.text();if(d==='ok'){if(status)status.innerHTML='<span style="color:var(--white)">Sniper active — watching '+esc(target)+'</span>';}else{if(status)status.innerHTML='<span style="color:var(--red)">'+esc(d)+'</span>';}
+}
+}
+async function clearSniper(){
+const bot=document.getElementById('sniperBot')?.value;
+const status=document.getElementById('sniperStatus');
+if(!bot){if(status)status.innerHTML='<span style="color:var(--red)">Select a bot</span>';return;}
+const r=await fetch('/sniper/clear/'+bot).catch(()=>null);
+if(r){if(status)status.innerHTML='<span style="color:var(--dim)">Sniper stopped</span>';}
+}
+
+var radarRefresh=null;
+var radarUsers=[];
+var radarGlobalPreset='stalker';
+var radarSelectedUser=null;
+var radarEnabled=true;
+var voiceRadarEnabled=true;
+async function toggleRadar(){
+const r=await fetch('/api/watchlist/toggle',{method:'POST'}).catch(()=>null);if(!r)return;
+const d=await r.json();
+radarEnabled=d.enabled;
+const btn=document.getElementById('radarToggleBtn');
+if(btn){btn.textContent=radarEnabled?'ON':'OFF';btn.style.color=radarEnabled?'var(--white)':'var(--dim)';btn.style.borderColor=radarEnabled?'var(--white)':'var(--gray3)';}
+showToast('User Radar: '+(radarEnabled?'Enabled':'Disabled'));
+}
+async function toggleVoiceRadar(){
+const r=await fetch('/api/voiceradar/toggle',{method:'POST'}).catch(()=>null);if(!r)return;
+const d=await r.json();
+voiceRadarEnabled=d.enabled;
+const btn=document.getElementById('voiceRadarToggleBtn');
+if(btn){btn.textContent=voiceRadarEnabled?'ON':'OFF';btn.style.color=voiceRadarEnabled?'var(--white)':'var(--dim)';btn.style.borderColor=voiceRadarEnabled?'var(--white)':'var(--gray3)';}
+showToast('Voice Radar: '+(voiceRadarEnabled?'Enabled':'Disabled'));
+}
+function updateRadarToggleUI(enabled){
+radarEnabled=enabled;
+const btn=document.getElementById('radarToggleBtn');
+if(btn){btn.textContent=enabled?'ON':'OFF';btn.style.color=enabled?'var(--white)':'var(--dim)';btn.style.borderColor=enabled?'var(--white)':'var(--gray3)';}
+}
+function updateVoiceRadarToggleUI(enabled){
+voiceRadarEnabled=enabled;
+const btn=document.getElementById('voiceRadarToggleBtn');
+if(btn){btn.textContent=enabled?'ON':'OFF';btn.style.color=enabled?'var(--white)':'var(--dim)';btn.style.borderColor=enabled?'var(--white)':'var(--gray3)';}
+}
+async function loadRadar(){
+if(radarRefresh){clearInterval(radarRefresh);radarRefresh=null;}
+const r=await fetch('/api/watchlist').catch(()=>null);if(!r)return;
+const d=await r.json();if(d.status!=='success')return;
+radarUsers=d.data||[];
+radarGlobalPreset=d.globalPreset||'stalker';
+radarEnabled=d.enabled!==false;
+const monitorBots=d.monitorBots||[];
+const botCount=d.botCount||0;
+updateRadarToggleUI(radarEnabled);
+document.getElementById('radarWatchlistCount').textContent='('+radarUsers.length+')';
+document.getElementById('radarGlobalPresetDisplay').textContent=radarGlobalPreset.charAt(0).toUpperCase()+radarGlobalPreset.slice(1);
+updateRadarPresetButtons();
+updateRadarPresetWarning();
+renderRadarBots(botCount,monitorBots);
+renderRadarUsers();
+updateLogHeader();
+radarRefresh=setInterval(loadRadarWatchlist,5000);
+loadRadarLogs();
+}
+function renderRadarBots(count,selected){
+const box=document.getElementById('radarBotSelector');if(!box)return;
+if(!count){box.innerHTML='<span style="color:var(--dim);font-size:11px">No bots connected</span>';return;}
+let html='<div onclick="radarSelectAllBots()" style="padding:3px 10px;border-radius:6px;border:1px solid '+(selected.length===0?'var(--white)':'var(--gray3)')+';background:'+(selected.length===0?'var(--white)':'transparent')+';color:'+(selected.length===0?'var(--black)':'var(--dim)')+';font-size:11px;cursor:pointer;font-family:Inter,sans-serif;font-weight:600;transition:all .2s;user-select:none">All</div>';
+for(let i=0;i<count;i++){
+const active=selected.length===0||selected.includes(i);
+html+='<div onclick="radarToggleBot('+i+')" style="padding:3px 10px;border-radius:6px;border:1px solid '+(active?'rgba(255,255,255,0.3)':'var(--gray3)')+';background:'+(active?'rgba(255,255,255,0.06)':'transparent')+';cursor:pointer;font-size:11px;color:'+(active?'var(--white)':'var(--dim)')+';font-family:Inter,sans-serif;transition:all .2s;user-select:none">'+(active?'\u2713 ':'')+'Bot '+(i+1)+'</div>';
+}
+box.innerHTML=html;
+}
+async function radarToggleBot(idx){
+const r=await fetch('/api/watchlist').catch(()=>null);if(!r)return;
+const d=await r.json();let current=d.monitorBots||[];
+if(current.includes(idx)){current=current.filter(i=>i!==idx);}else{current.push(idx);}
+await fetch('/api/watchlist/monitorbots',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({indices:current})}).catch(()=>null);
+loadRadar();
+}
+async function radarSelectAllBots(){
+await fetch('/api/watchlist/monitorbots',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({indices:[]})}).catch(()=>null);
+loadRadar();
+}
+function updateRadarPresetButtons(){
+document.querySelectorAll('.radar-preset-btn').forEach(b=>{
+const active=b.dataset.preset===radarGlobalPreset;
+b.style.borderColor=active?'var(--white)':'var(--gray3)';
+b.style.background=active?'rgba(255,255,255,0.08)':'var(--gray)';
+b.style.color=active?'var(--white)':'var(--dim)';
+});
+}
+function updateRadarPresetWarning(){
+const w=document.getElementById('radarPresetWarning');
+if(radarGlobalPreset!=='custom'){w.textContent='Global preset applies to all users. Switch to Custom to configure individually.';w.style.display='block';}
+else{w.style.display='none';}
+}
+function renderRadarUsers(){
+const list=document.getElementById('radarList');
+if(!radarUsers.length){list.innerHTML='<div style="text-align:center;padding:40px;color:var(--dim)">No users on watchlist</div>';return;}
+list.innerHTML=radarUsers.map(u=>{
+const isCustom=radarGlobalPreset==='custom';
+const ov=u.overrides||{};
+const isSelected=radarSelectedUser===u.userId;
+return `
+<div style="background:${isSelected?'rgba(255,255,255,0.04)':'var(--gray)'};border:1px solid ${isSelected?'rgba(255,255,255,0.3)':'var(--gray3)'};border-radius:12px;padding:0;transition:all .25s" onmouseover="this.style.borderColor='rgba(255,255,255,0.2)'" onmouseout="if(!${isSelected})this.style.borderColor='var(--gray3)'">
+<div style="padding:16px 18px;display:flex;justify-content:space-between;align-items:start;border-bottom:1px solid rgba(255,255,255,0.04)">
+<div style="flex:1;min-width:0">
+<div style="font-weight:700;font-size:15px;color:var(--white);letter-spacing:-0.3px">${esc(u.label)}</div>
+<div style="font-size:11px;color:var(--dim);font-family:monospace;margin-top:3px">${u.userId}</div>
+<div style="display:flex;gap:14px;font-size:11px;color:var(--dim);margin-top:6px">
+<span style="display:flex;align-items:center;gap:4px"><span style="width:5px;height:5px;border-radius:50%;background:${(u.logCount||0)>0?'var(--white)':'var(--gray3)'}"></span>${timeAgoRadar(u.lastActivity)}</span>
+<span>${u.logCount||0} events</span>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+<span style="padding:4px 12px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;background:${isSelected?'var(--white)':'var(--gray2)'};border:1px solid ${isSelected?'var(--white)':'var(--gray3)'};color:${isSelected?'var(--black)':'var(--white)'}">${u.preset}</span>
+</div>
+</div>
+${isCustom?`
+<div style="padding:12px 18px;border-bottom:1px solid rgba(255,255,255,0.04)">
+<div style="display:flex;gap:6px;align-items:center;margin-bottom:12px">
+<select onchange="setRadarUserPreset('${u.userId}',this.value)" style="padding:5px 10px;border-radius:6px;border:1px solid var(--gray3);background:var(--gray2);color:var(--white);font-size:11px;font-family:Inter,sans-serif;outline:none;cursor:pointer;transition:border .2s" onfocus="this.style.borderColor='var(--white)'" onblur="this.style.borderColor='var(--gray3)'">
+<option value="stalker"${u.preset==='stalker'?' selected':''}>Stalker</option>
+<option value="lite"${u.preset==='lite'?' selected':''}>Lite</option>
+<option value="silent"${u.preset==='silent'?' selected':''}>Silent</option>
+<option value="custom"${u.preset==='custom'?' selected':''}>Custom</option>
+</select>
+<div style="flex:1"></div>
+<button onclick="selectRadarUser('${u.userId}')" style="padding:5px 12px;border-radius:6px;border:1px solid ${isSelected?'var(--white)':'var(--gray3)'};background:${isSelected?'var(--white)':'transparent'};color:${isSelected?'var(--black)':'var(--dim)'};font-size:11px;cursor:pointer;font-family:Inter,sans-serif;transition:all .2s;font-weight:500">${isSelected?'\u2716 Deselect':'\u{1F441} View Logs'}</button>
+<button onclick="removeRadarUser('${u.userId}')" style="padding:5px 10px;border-radius:6px;border:1px solid var(--gray3);background:transparent;color:var(--dim);font-size:11px;cursor:pointer;font-family:Inter,sans-serif;transition:all .2s" onmouseover="this.style.borderColor='var(--white)';this.style.color='var(--white)'" onmouseout="this.style.borderColor='var(--gray3)';this.style.color='var(--dim)'">X</button>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+${['messages','edits','deletes','typing','reactions','voice'].map(type=>{
+const o=ov[type]||{enabled:true,notify:true};
+return `<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03)">
+<div onclick="toggleRadarOverride('${u.userId}','${type}')" style="position:relative;width:32px;height:18px;background:${o.enabled?'var(--white)':'var(--gray3)'};border-radius:9px;cursor:pointer;transition:all .2s;flex-shrink:0">
+<div style="position:absolute;top:2px;left:${o.enabled?'16px':'2px'};width:14px;height:14px;background:${o.enabled?'var(--black)':'var(--dim)'};border-radius:50%;transition:all .2s"></div>
+</div>
+<div style="flex:1;min-width:0"><span style="color:var(--white);font-size:11px;font-weight:500">${type}</span><div style="font-size:9px;color:${o.notify?'var(--white)':'var(--dim)'};margin-top:1px">${o.notify?'Notify':'Silent'}</div></div>
+</div>`;
+}).join('')}
+</div>
+</div>
+`:`<div style="padding:12px 18px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,0.04)">
+<div style="font-size:11px;color:var(--dim);display:flex;align-items:center;gap:6px">
+<span style="width:5px;height:5px;border-radius:50%;background:var(--white)"></span>
+${radarGlobalPreset==='stalker'?'Tracking everything':radarGlobalPreset==='lite'?'Messages + voice only':'All events, no notifications'}
+</div>
+<div style="display:flex;gap:6px">
+<button onclick="selectRadarUser('${u.userId}')" style="padding:5px 12px;border-radius:6px;border:1px solid ${isSelected?'var(--white)':'var(--gray3)'};background:${isSelected?'var(--white)':'transparent'};color:${isSelected?'var(--black)':'var(--dim)'};font-size:11px;cursor:pointer;font-family:Inter,sans-serif;transition:all .2s;font-weight:500">${isSelected?'\u2716 Deselect':'\u{1F441} View Logs'}</button>
+<button onclick="removeRadarUser('${u.userId}')" style="padding:5px 10px;border-radius:6px;border:1px solid var(--gray3);background:transparent;color:var(--dim);font-size:11px;cursor:pointer;font-family:Inter,sans-serif;transition:all .2s" onmouseover="this.style.borderColor='var(--white)';this.style.color='var(--white)'" onmouseout="this.style.borderColor='var(--gray3)';this.style.color='var(--dim)'">Remove</button>
+</div>
+</div>`}
+</div>`;
+}).join('');
+}
+async function loadRadarWatchlist(){
+const r=await fetch('/api/watchlist').catch(()=>null);if(!r)return;
+const d=await r.json();if(d.status!=='success')return;
+radarUsers=d.data||[];radarGlobalPreset=d.globalPreset||'stalker';
+document.getElementById('radarWatchlistCount').textContent='('+radarUsers.length+')';
+document.getElementById('radarGlobalPresetDisplay').textContent=radarGlobalPreset.charAt(0).toUpperCase()+radarGlobalPreset.slice(1);
+updateRadarPresetButtons();updateRadarPresetWarning();renderRadarUsers();
+}
+async function loadRadarLogs(){
+const r=await fetch('/api/watchlist').catch(()=>null);if(!r)return;
+const d=await r.json();if(d.status!=='success')return;
+const users=d.data||[];
+const box=document.getElementById('radarLogs');
+const countEl=document.getElementById('radarLogCount');
+let totalLogs=0;
+let html='';
+if(!radarSelectedUser){
+if(countEl)countEl.textContent='0 events';
+box.innerHTML='<div style="padding:40px;color:var(--dim);text-align:center;font-size:13px">Select a user to view their logs</div>';
+return;
+}
+for(const u of users){
+if(u.userId!==radarSelectedUser)continue;
+if(!u.logs||!u.logs.length)continue;
+const recent=u.logs.slice(-50);
+totalLogs+=recent.length;
+for(const l of recent){
+const d2=new Date(l.timestamp);
+const t=d2.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+const icon=l.type==='messages'?'\u2709\uFE0F':l.type==='edits'?'\u270F\uFE0F':l.type==='deletes'?'\u274C':l.type==='typing'?'\u2328\uFE0F':l.type==='reactions'?'\u2764\uFE0F':l.type==='voice'?'\u{1F3A6}':'\u2022';
+let desc='';
+const guild=l.data.guild?`<span style="color:var(--dim);font-size:11px;margin-left:6px">\u25B8 ${esc(l.data.guild)}</span>`:'';
+const channel=l.data.channel?`<span style="color:var(--faint);font-size:11px">#${esc(l.data.channel)}</span>`:'';
+if(l.type==='messages')desc=`<span style="color:var(--faint)">sent</span> <span style="color:var(--white);font-weight:500;background:rgba(255,255,255,0.06);padding:2px 8px;border-radius:4px;font-size:11px">"${esc(l.data.content||'')}"</span> ${channel}${guild}`;
+else if(l.type==='edits')desc=`<span style="color:var(--faint)">edited</span> \u2192 <span style="color:var(--white);font-weight:500;background:rgba(255,255,255,0.06);padding:2px 8px;border-radius:4px;font-size:11px">"${esc(l.data.after||'')}"</span> ${channel}${guild}`;
+else if(l.type==='deletes')desc=`<span style="color:var(--faint)">deleted</span> <span style="color:var(--dim);text-decoration:line-through;font-size:11px">"${esc((l.data.content||'').slice(0,80))}"</span> ${channel}${guild}`;
+else if(l.type==='typing')desc=`<span style="color:var(--faint)">typing</span> ${channel}${guild}`;
+else if(l.type==='reactions')desc=`<span style="color:var(--faint)">${l.data.action}</span> <span style="color:var(--white);font-weight:600;font-size:14px">${esc(l.data.emoji||'')}</span> <span style="color:var(--dim);font-size:11px">on "${esc((l.data.message||'').slice(0,40))}"</span> ${channel}${guild}`;
+else if(l.type==='voice')desc=`<span style="color:var(--white);font-weight:500">${esc(l.data.action||'')}</span> <span style="color:var(--faint)">${esc(l.data.channel||'')}</span>${guild}`;
+else desc=esc(JSON.stringify(l.data).slice(0,80));
+html+=`<div style="padding:8px 16px;border-bottom:1px solid rgba(255,255,255,0.03);display:flex;align-items:flex-start;gap:12px;transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'"><span style="color:var(--dim);font-size:11px;font-family:monospace;min-width:70px;padding-top:2px;flex-shrink:0">${t}</span><span style="font-size:13px;min-width:20px;text-align:center;flex-shrink:0;padding-top:1px">${icon}</span><div style="flex:1;min-width:0"><span style="color:var(--white);font-weight:600;font-size:12px">${esc(u.label)}</span> <span style="color:var(--faint);font-size:12px">${desc}</span></div></div>`;
+}
+}
+if(countEl)countEl.textContent=totalLogs+' events';
+box.innerHTML=html||'<div style="padding:40px;color:var(--dim);text-align:center;font-size:13px">Waiting for events...</div>';
+}
+async function addRadarUser(){
+const userId=document.getElementById('radarUserId')?.value?.trim();
+const label=document.getElementById('radarLabel')?.value?.trim();
+if(!userId){showToast('Enter a User ID');return;}
+const r=await fetch('/api/watchlist/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId,label})}).catch(()=>null);
+if(r){const d=await r.json();if(d.status==='success'){document.getElementById('radarUserId').value='';document.getElementById('radarLabel').value='';showToast('Added '+d.data.label);loadRadar();}else{showToast('Error: '+d.message);}}
+}
+async function removeRadarUser(userId){
+if(!confirm('Remove this user from watchlist?'))return;
+const r=await fetch('/api/watchlist/remove/'+userId,{method:'DELETE'}).catch(()=>null);
+if(r){showToast('User removed');loadRadar();}
+}
+async function setRadarGlobalPreset(preset){
+const r=await fetch('/api/watchlist/preset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({preset})}).catch(()=>null);
+if(r){const d=await r.json();if(d.status==='success'){radarGlobalPreset=preset;updateRadarPresetButtons();updateRadarPresetWarning();loadRadar();showToast('Preset: '+preset);}else{showToast('Error: '+d.message);}}
+}
+async function setRadarUserPreset(userId,preset){
+const r=await fetch('/api/watchlist/preset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId,preset})}).catch(()=>null);
+if(r){const d=await r.json();if(d.status==='success'){loadRadar();}else{showToast('Error: '+d.message);}}
+}
+async function toggleRadarOverride(userId,type){
+const user=radarUsers.find(u=>u.userId===userId);if(!user)return;
+const ov=(user.overrides||{})[type]||{enabled:true,notify:true};
+const newVal=!ov.enabled;
+const r=await fetch('/api/watchlist/override',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId,type,enabled:newVal,notify:ov.notify})}).catch(()=>null);
+if(r){const d=await r.json();if(d.status==='success'){loadRadar();}else{showToast('Error: '+d.message);}}
+}
+async function clearRadarLogs(){
+if(!confirm('Clear all logs?'))return;
+const r=await fetch('/api/watchlist/clear',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})}).catch(()=>null);
+if(r){document.getElementById('radarLogs').innerHTML='<div style="color:var(--dim)">Logs cleared</div>';showToast('All logs cleared');}
+}
+async function exportRadarData(){
+const r=await fetch('/api/watchlist/export').catch(()=>null);if(!r)return;
+const d=await r.json();if(d.status!=='success'){showToast('Error exporting');return;}
+const blob=new Blob([JSON.stringify(d.data,null,2)],{type:'application/json'});
+const url=URL.createObjectURL(blob);
+const a=document.createElement('a');a.href=url;a.download='watchlist_'+new Date().toISOString().slice(0,10)+'.json';a.click();
+URL.revokeObjectURL(url);showToast('Export complete');
+}
+async function importRadarData(event){
+const file=event.target.files[0];if(!file)return;
+try{const text=await file.text();const data=JSON.parse(text);
+const r=await fetch('/api/watchlist/import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data})}).catch(()=>null);
+if(r){const d=await r.json();if(d.status==='success'){showToast('Import complete');loadRadar();}else{showToast('Error: '+d.message);}}
+}catch(e){showToast('Error importing file');}
+event.target.value='';
+}
+function timeAgoRadar(ts){
+const diff=Math.floor((Date.now()-ts)/1000);
+if(diff<60)return 'just now';
+if(diff<3600)return Math.floor(diff/60)+'m ago';
+if(diff<86400)return Math.floor(diff/3600)+'h ago';
+return Math.floor(diff/86400)+'d ago';
+}
+function selectRadarUser(userId){
+if(radarSelectedUser===userId){radarSelectedUser=null;}else{radarSelectedUser=userId;}
+renderRadarUsers();
+updateLogHeader();
+loadRadarLogs();
+}
+function updateLogHeader(){
+const hdr=document.getElementById('radarLogHeader');
+if(!hdr)return;
+if(radarSelectedUser){
+const u=radarUsers.find(u=>u.userId===radarSelectedUser);
+const name=u?u.label:radarSelectedUser;
+hdr.innerHTML=`<div style="display:flex;align-items:center;gap:10px"><div style="width:8px;height:8px;border-radius:50%;background:var(--white);box-shadow:0 0 8px rgba(255,255,255,0.5)"></div><span style="font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase">${esc(name)}</span><span style="font-size:11px;color:var(--dim)">logs</span></div><div style="display:flex;gap:8px;align-items:center"><span style="font-size:11px;color:var(--dim);font-family:monospace" id="radarLogCount">0 events</span><button onclick="selectRadarUser('${radarSelectedUser}')" style="padding:4px 12px;border-radius:6px;border:1px solid var(--gray3);background:transparent;color:var(--dim);font-size:11px;cursor:pointer;font-family:Inter,sans-serif;transition:all .2s">Show All</button></div>`;
+}else{
+hdr.innerHTML=`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim)">Activity Log</span></div><span style="font-size:11px;color:var(--dim)">Click 👁 Logs on a user</span>`;
+}
+}
+var vrChannels=[];
+var vrSelectedChannel=null;
+var vrRefresh=null;
+async function loadVoiceRadar(){
+const r=await fetch('/api/voiceradar').catch(()=>null);if(!r)return;
+const d=await r.json();
+vrChannels=d.channels||[];
+voiceRadarEnabled=d.enabled!==false;
+updateVoiceRadarToggleUI(voiceRadarEnabled);
+document.getElementById('vrChannelCount').textContent='('+vrChannels.length+')';
+renderVRChannels();
+renderVRBotSelector(d.monitorBots||[],d.botCount||0);
+}
+var vrMonitorBots=[];
+function renderVRBotSelector(selected,count){
+vrMonitorBots=selected;
+const box=document.getElementById('vrBotSelector');if(!box)return;
+if(!count){box.innerHTML='<span style="color:var(--dim);font-size:11px">No bots connected</span>';return;}
+let html='<div onclick="vrSelectAllBots()" style="padding:3px 10px;border-radius:6px;border:1px solid '+(selected.length===0?'var(--white)':'var(--gray3)')+';background:'+(selected.length===0?'var(--white)':'transparent')+';color:'+(selected.length===0?'var(--black)':'var(--dim)')+';font-size:11px;cursor:pointer;font-family:Inter,sans-serif;font-weight:600;transition:all .2s;user-select:none">All</div>';
+for(let i=0;i<count;i++){
+const active=selected.length===0||selected.includes(i);
+html+='<div onclick="vrToggleBot('+i+')" style="padding:3px 10px;border-radius:6px;border:1px solid '+(active?'rgba(255,255,255,0.3)':'var(--gray3)')+';background:'+(active?'rgba(255,255,255,0.06)':'transparent')+';cursor:pointer;font-size:11px;color:'+(active?'var(--white)':'var(--dim)')+';font-family:Inter,sans-serif;transition:all .2s;user-select:none">'+(active?'\u2713 ':'')+'Bot '+(i+1)+'</div>';
+}
+box.innerHTML=html;
+}
+async function vrToggleBot(idx){
+const current=vrMonitorBots.slice();
+if(current.includes(idx)){const i=current.indexOf(idx);if(i>-1)current.splice(i,1);}else{current.push(idx);}
+await fetch('/api/voiceradar/monitorbots',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({indices:current})}).catch(()=>null);
+loadVoiceRadar();
+}
+async function vrSelectAllBots(){
+await fetch('/api/voiceradar/monitorbots',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({indices:[]})}).catch(()=>null);
+loadVoiceRadar();
+}
+function renderVRChannels(){
+const list=document.getElementById('vrChannelList');
+if(!vrChannels.length){list.innerHTML='<div style="text-align:center;padding:40px;color:var(--dim)">No channels monitored</div>';return;}
+list.innerHTML=vrChannels.map(ch=>{
+const isSelected=vrSelectedChannel===ch.channelId;
+return `
+<div style="background:${isSelected?'rgba(255,255,255,0.04)':'var(--gray)'};border:1px solid ${isSelected?'rgba(255,255,255,0.3)':'var(--gray3)'};border-radius:12px;padding:0;transition:all .25s" onmouseover="this.style.borderColor='rgba(255,255,255,0.2)'" onmouseout="if(!${isSelected})this.style.borderColor='var(--gray3)'">
+<div style="padding:16px 18px;display:flex;justify-content:space-between;align-items:start;border-bottom:1px solid rgba(255,255,255,0.04)">
+<div style="flex:1;min-width:0;cursor:pointer" onclick="selectVRChannel('${ch.channelId}')">
+<div style="font-weight:700;font-size:15px;color:var(--white);letter-spacing:-0.3px">${esc(ch.channelName)}</div>
+<div style="font-size:11px;color:var(--dim);margin-top:3px;font-weight:500">${esc(ch.guildName)}</div>
+<div style="font-size:11px;color:var(--dim);font-family:monospace;margin-top:4px">${ch.channelId}</div>
+</div>
+<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+<button onclick="event.stopPropagation();selectVRChannel('${ch.channelId}')" style="padding:5px 12px;border-radius:6px;border:1px solid ${isSelected?'var(--white)':'var(--gray3)'};background:${isSelected?'var(--white)':'transparent'};color:${isSelected?'var(--black)':'var(--dim)'};font-size:11px;cursor:pointer;font-family:Inter,sans-serif;transition:all .2s;font-weight:500">${isSelected?'\u2716 Deselect':'\u{1F441} View Logs'}</button>
+<button onclick="event.stopPropagation();removeVRChannel('${ch.channelId}')" style="padding:5px 10px;border-radius:6px;border:1px solid var(--gray3);background:transparent;color:var(--dim);font-size:11px;cursor:pointer;font-family:Inter,sans-serif;transition:all .2s" onmouseover="this.style.borderColor='var(--white)';this.style.color='var(--white)'" onmouseout="this.style.borderColor='var(--gray3)';this.style.color='var(--dim)'">X</button>
+</div>
+</div>
+</div>`;
+}).join('');
+}
+var vrVoiceData={};
+var vrGuilds=[];
+var vrVoiceChannels=[];
+async function loadVRGuilds(){
+vrGuilds=[];
+const r=await fetch('/status').catch(()=>null);if(!r)return;
+const d=await r.json();
+const sel=document.getElementById('vrGuildSelect');
+if(!sel)return;
+sel.innerHTML='<option value="">Select server</option>';
+for(let i=0;i<(d.bots||[]).length;i++){
+const gr=await fetch('/guilds/'+i).catch(()=>null);if(!gr)continue;
+const guilds=await gr.json();
+for(const g of guilds){
+if(!vrGuilds.find(x=>x.id===g.id)){
+vrGuilds.push({...g,botIndex:i});
+sel.innerHTML+=`<option value="${g.id}">${g.name}</option>`;
+}
+}
+}
+}
+async function loadVRVoiceChannels(guildId){
+const sel=document.getElementById('vrVoiceSelect');
+if(!guildId){sel.innerHTML='<option value="">Select voice channel</option>';return;}
+const guild=vrGuilds.find(g=>g.id===guildId);
+if(!guild){sel.innerHTML='<option value="">Select voice channel</option>';return;}
+const r=await fetch('/guildchannels/'+guild.botIndex+'/'+guildId).catch(()=>null);
+if(!r){sel.innerHTML='<option value="">Error loading</option>';return;}
+const d=await r.json();
+vrVoiceData={};
+sel.innerHTML='<option value="">Select voice channel</option>';
+(d.voice||[]).forEach(c=>{
+vrVoiceData[c.id]={name:c.name,guildName:guild.name};
+const opt=document.createElement('option');
+opt.value=c.id;
+opt.textContent=c.name;
+sel.appendChild(opt);
+});
+}
+async function addVRSelected(){
+const chId=document.getElementById('vrVoiceSelect')?.value;
+if(!chId){showToast('Select a voice channel');return;}
+const info=vrVoiceData[chId];
+const chName=info?info.name:chId;
+const guildName=info?info.guildName:'Unknown';
+const r=await fetch('/api/voiceradar/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channelId:chId,guildName,channelName:chName})}).catch(()=>null);
+if(r){const d=await r.json();if(d.status==='success'){showToast('Added: '+chName);loadVoiceRadar();}else{showToast('Error: '+d.message);}}
+}
+async function removeVRChannel(channelId){
+await fetch('/api/voiceradar/remove/'+channelId,{method:'DELETE'}).catch(()=>null);
+if(vrSelectedChannel===channelId)vrSelectedChannel=null;
+showToast('Channel removed');
+loadVoiceRadar();
+updateVRLogHeader();
+}
+function selectVRChannel(channelId){
+if(vrSelectedChannel===channelId){vrSelectedChannel=null;}else{vrSelectedChannel=channelId;}
+renderVRChannels();
+updateVRLogHeader();
+loadVRLogs();
+}
+function updateVRLogHeader(){
+const hdr=document.getElementById('vrLogHeader');
+if(!hdr)return;
+if(vrSelectedChannel){
+const ch=vrChannels.find(c=>c.channelId===vrSelectedChannel);
+const name=ch?ch.channelName:vrSelectedChannel;
+hdr.innerHTML=`<div style="display:flex;align-items:center;gap:10px"><div style="width:8px;height:8px;border-radius:50%;background:var(--white);box-shadow:0 0 8px rgba(255,255,255,0.5);animation:glowPulse 2s infinite"></div><span style="font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase">${esc(name)}</span><span style="font-size:11px;color:var(--dim)">voice log</span></div><div style="display:flex;gap:8px;align-items:center"><span style="font-size:11px;color:var(--dim);font-family:monospace" id="vrLogCount">0 events</span><button onclick="selectVRChannel('${vrSelectedChannel}')" style="padding:5px 12px;border-radius:6px;border:1px solid var(--gray3);background:transparent;color:var(--dim);font-size:11px;cursor:pointer;font-family:Inter,sans-serif;transition:all .2s;font-weight:500">${'\u2716'} Deselect</button></div>`;
+}else{
+hdr.innerHTML=`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim)">Voice Activity</span></div><span style="font-size:11px;color:var(--dim);font-weight:500">Select a channel to monitor</span>`;
+}
+}
+async function loadVRLogs(){
+if(!vrSelectedChannel){
+document.getElementById('vrLogs').innerHTML='<div style="padding:40px;color:var(--dim);text-align:center;font-size:13px">Select a channel to view activity</div>';
+const countEl=document.getElementById('vrLogCount');
+if(countEl)countEl.textContent='0 events';
+return;
+}
+const r=await fetch('/api/voiceradar/logs/'+vrSelectedChannel).catch(()=>null);if(!r)return;
+const d=await r.json();if(d.status!=='success')return;
+const logs=d.data||[];
+const box=document.getElementById('vrLogs');
+const countEl=document.getElementById('vrLogCount');
+let html='';
+for(const l of logs){
+const t=new Date(l.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+const typeIcons={join:'\u{1F50A}',leave:'\u{1F50B}',mute:'\u{1F507}',unmute:'\u{1F50A}',deaf:'\u{1F507}',undeaf:'\u{1F50A}',video_on:'\u{1F4F9}',video_off:'\u{1F4F9}',stream_on:'\u{1F3AC}',stream_off:'\u{1F3AC}',move:'\u{1F504}'};
+const icon=typeIcons[l.type]||'\u2022';
+let desc='';
+if(l.type==='join')desc=`<span style="color:var(--faint)">joined</span>`;
+else if(l.type==='leave')desc=`<span style="color:var(--faint)">left</span>`;
+else if(l.type==='mute')desc=`<span style="color:var(--faint)">muted</span>`;
+else if(l.type==='unmute')desc=`<span style="color:var(--faint)">unmuted</span>`;
+else if(l.type==='deaf')desc=`<span style="color:var(--faint)">deafened</span>`;
+else if(l.type==='undeaf')desc=`<span style="color:var(--faint)">undeafened</span>`;
+else if(l.type==='video_on')desc=`<span style="color:var(--faint)">started video</span>`;
+else if(l.type==='video_off')desc=`<span style="color:var(--faint)">stopped video</span>`;
+else if(l.type==='stream_on')desc=`<span style="color:var(--faint)">started streaming</span>`;
+else if(l.type==='stream_off')desc=`<span style="color:var(--faint)">stopped streaming</span>`;
+else if(l.type==='move')desc=`<span style="color:var(--faint)">moved ${esc(l.from)} \u2192 ${esc(l.to)}</span>`;
+html+=`<div style="padding:8px 16px;border-bottom:1px solid rgba(255,255,255,0.03);display:flex;align-items:flex-start;gap:12px;transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'"><span style="color:var(--dim);font-size:11px;font-family:monospace;min-width:70px;padding-top:2px;flex-shrink:0">${t}</span><span style="font-size:13px;min-width:20px;text-align:center;flex-shrink:0;padding-top:1px">${icon}</span><div style="flex:1;min-width:0"><span style="color:var(--white);font-weight:600;font-size:12px">${esc(l.user)}</span> <span style="color:var(--faint);font-size:12px">${desc}</span></div></div>`;
+}
+if(countEl)countEl.textContent=logs.length+' events';
+box.innerHTML=html||'<div style="padding:40px;color:var(--dim);text-align:center;font-size:13px">No events yet</div>';
+}
+async function clearVoiceRadarLogs(){
+if(!vrSelectedChannel){showToast('Select a channel first');return;}
+await fetch('/api/voiceradar/clear',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channelId:vrSelectedChannel})}).catch(()=>null);
+showToast('Logs cleared');
+loadVRLogs();
+}
 </script>
 </body>
 </html>
