@@ -11,6 +11,7 @@ const accountsFile = require('path').join(__dirname, 'accounts.json');
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || '';
 const GITHUB_REPO = process.env.GITHUB_REPO || 'xe21y98i2o/thisisArep';
 const GITHUB_FILE = 'accounts.json';
+const GITHUB_VR_FILE = 'voice-radar.json';
 
 function addLog(msg, idx) {
     const t = new Date().toLocaleTimeString();
@@ -183,6 +184,7 @@ class VoiceRadarManager {
     save() {
         try {
             require('fs').writeFileSync(VOICE_RADAR_FILE, JSON.stringify({ channels: this.channels, logs: this.logs, enabled: this.enabled, monitorBots: this.monitorBots }, null, 2));
+            pushFileToGitHub(GITHUB_VR_FILE, { channels: this.channels, logs: this.logs, enabled: this.enabled, monitorBots: this.monitorBots });
         } catch (e) {}
     }
     toggleEnabled() {
@@ -772,6 +774,28 @@ async function pushToGitHub(accounts) {
     } catch (e) { addLog(`GitHub push failed: ${e.message}`, null); }
 }
 
+async function pushFileToGitHub(filename, data) {
+    if (!GITHUB_TOKEN) return;
+    try {
+        const https = require('https');
+        const content = Buffer.from(JSON.stringify(data, null, 2)).toString('base64');
+        const getSha = () => new Promise((resolve, reject) => {
+            const opts = { hostname: 'api.github.com', path: `/repos/${GITHUB_REPO}/contents/${filename}`, headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'User-Agent': 'VC-KeepAlive' } };
+            https.get(opts, res => { let d = ''; res.on('data', c => d += c); res.on('end', () => { try { resolve(JSON.parse(d).sha); } catch { resolve(null); } }); }).on('error', reject);
+        });
+        const sha = await getSha();
+        const body = JSON.stringify({ message: `Update ${filename}`, content, ...(sha ? { sha } : {}) });
+        const push = () => new Promise((resolve, reject) => {
+            const opts = { hostname: 'api.github.com', path: `/repos/${GITHUB_REPO}/contents/${filename}`, method: 'PUT', headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json; charset=utf-8', 'User-Agent': 'VC-KeepAlive', 'Content-Length': Buffer.byteLength(body) } };
+            const req = https.request(opts, res => { let d = ''; res.on('data', c => d += c); res.on('end', () => resolve(d)); });
+            req.on('error', reject);
+            req.write(body);
+            req.end();
+        });
+        await push();
+    } catch (e) { addLog(`GitHub push ${filename} failed: ${e.message}`, null); }
+}
+
 function accountsToText(accounts) {
     return accounts.map(a => a.token).join('\n');
 }
@@ -1178,4 +1202,26 @@ process.on('unhandledRejection', e => {
     try { addLog(`Server reject: ${e.message}`, null); } catch {}
 });
 server.listen(PORT, () => console.log('Web panel on port ' + PORT));
-loadBots();
+async function startupPull() {
+    const https = require('https');
+    const pullFile = async (filename) => {
+        if (!GITHUB_TOKEN) return;
+        const fs = require('fs');
+        const filePath = require('path').join(__dirname, filename);
+        if (fs.existsSync(filePath)) return;
+        try {
+            const data = await new Promise((resolve, reject) => {
+                const opts = { hostname: 'api.github.com', path: `/repos/${GITHUB_REPO}/contents/${filename}`, headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'User-Agent': 'VC-KeepAlive' } };
+                https.get(opts, res => { let d = ''; res.on('data', c => d += c); res.on('end', () => { try { const j = JSON.parse(d); resolve(Buffer.from(j.content, 'base64').toString('utf8')); } catch { resolve(null); } }); }).on('error', reject);
+            });
+            if (data) {
+                fs.writeFileSync(filePath, data);
+                addLog(`Pulled ${filename} from GitHub`, null);
+            }
+        } catch (e) { addLog(`Failed to pull ${filename}: ${e.message}`, null); }
+    };
+    await pullFile('accounts.json');
+    await pullFile('voice-radar.json');
+    loadBots();
+}
+startupPull();
