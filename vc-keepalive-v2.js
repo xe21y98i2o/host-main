@@ -11,6 +11,7 @@ const allLogs = [];
 const accountsFile = require('path').join(__dirname, 'accounts.json');
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || '';
 const GITHUB_REPO = process.env.GITHUB_REPO || 'xe21y98i2o/thisisArep';
+const GITHUB_DATA_BRANCH = 'data';
 const GITHUB_FILE = 'accounts.json';
 const GITHUB_VR_FILE = 'voice-radar.json';
 
@@ -742,11 +743,11 @@ async function pushToGitHub(accounts) {
         const https = require('https');
         const content = Buffer.from(JSON.stringify(accounts, null, 2)).toString('base64');
         const getSha = () => new Promise((resolve, reject) => {
-            const opts = { hostname: 'api.github.com', path: `/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`, headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'User-Agent': 'VC-KeepAlive' } };
+            const opts = { hostname: 'api.github.com', path: `/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}?ref=${GITHUB_DATA_BRANCH}`, headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'User-Agent': 'VC-KeepAlive' } };
             https.get(opts, res => { let d = ''; res.on('data', c => d += c); res.on('end', () => { try { resolve(JSON.parse(d).sha); } catch { resolve(null); } }); }).on('error', reject);
         });
         const sha = await getSha();
-        const body = JSON.stringify({ message: 'Update accounts.json from dashboard', content, ...(sha ? { sha } : {}) });
+        const body = JSON.stringify({ message: 'Update accounts.json', content, branch: GITHUB_DATA_BRANCH, ...(sha ? { sha } : {}) });
         const push = () => new Promise((resolve, reject) => {
             const opts = { hostname: 'api.github.com', path: `/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`, method: 'PUT', headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json; charset=utf-8', 'User-Agent': 'VC-KeepAlive', 'Content-Length': Buffer.byteLength(body) } };
             const req = https.request(opts, res => { let d = ''; res.on('data', c => d += c); res.on('end', () => resolve(d)); });
@@ -755,7 +756,7 @@ async function pushToGitHub(accounts) {
             req.end();
         });
         await push();
-        addLog('Pushed accounts.json to GitHub — Railway will redeploy', null);
+        addLog('Pushed accounts.json to GitHub (data branch)', null);
     } catch (e) { addLog(`GitHub push failed: ${e.message}`, null); }
 }
 
@@ -765,11 +766,11 @@ async function pushFileToGitHub(filename, data) {
         const https = require('https');
         const content = Buffer.from(JSON.stringify(data, null, 2)).toString('base64');
         const getSha = () => new Promise((resolve, reject) => {
-            const opts = { hostname: 'api.github.com', path: `/repos/${GITHUB_REPO}/contents/${filename}`, headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'User-Agent': 'VC-KeepAlive' } };
+            const opts = { hostname: 'api.github.com', path: `/repos/${GITHUB_REPO}/contents/${filename}?ref=${GITHUB_DATA_BRANCH}`, headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'User-Agent': 'VC-KeepAlive' } };
             https.get(opts, res => { let d = ''; res.on('data', c => d += c); res.on('end', () => { try { resolve(JSON.parse(d).sha); } catch { resolve(null); } }); }).on('error', reject);
         });
         const sha = await getSha();
-        const body = JSON.stringify({ message: `Update ${filename}`, content, ...(sha ? { sha } : {}) });
+        const body = JSON.stringify({ message: `Update ${filename}`, content, branch: GITHUB_DATA_BRANCH, ...(sha ? { sha } : {}) });
         const push = () => new Promise((resolve, reject) => {
             const opts = { hostname: 'api.github.com', path: `/repos/${GITHUB_REPO}/contents/${filename}`, method: 'PUT', headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json; charset=utf-8', 'User-Agent': 'VC-KeepAlive', 'Content-Length': Buffer.byteLength(body) } };
             const req = https.request(opts, res => { let d = ''; res.on('data', c => d += c); res.on('end', () => resolve(d)); });
@@ -1194,7 +1195,7 @@ async function startupPull() {
         const filePath = require('path').join(__dirname, filename);
         try {
             const data = await new Promise((resolve, reject) => {
-                const opts = { hostname: 'api.github.com', path: `/repos/${GITHUB_REPO}/contents/${filename}`, headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'User-Agent': 'VC-KeepAlive' } };
+                const opts = { hostname: 'api.github.com', path: `/repos/${GITHUB_REPO}/contents/${filename}?ref=${GITHUB_DATA_BRANCH}`, headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'User-Agent': 'VC-KeepAlive' } };
                 https.get(opts, res => { let d = ''; res.on('data', c => d += c); res.on('end', () => { addLog(`Startup pull: ${filename} response ${res.statusCode}`, null); try { const j = JSON.parse(d); if (j.content) { resolve(Buffer.from(j.content, 'base64').toString('utf8')); } else { addLog(`Startup pull: ${filename} no content: ${d.substring(0, 100)}`, null); resolve(null); } } catch (e) { addLog(`Startup pull: ${filename} parse error: ${e.message}`, null); resolve(null); } }); }).on('error', (e) => { addLog(`Startup pull: ${filename} error: ${e.message}`, null); reject(e); });
             });
             if (data) {
