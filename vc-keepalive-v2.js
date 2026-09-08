@@ -55,14 +55,16 @@ class WatchlistManager {
     }
     save() {
         try {
-            require('fs').writeFileSync(WATCHLIST_FILE, JSON.stringify({
+            const data = {
                 globalPreset: this.globalPreset,
                 globalOverridesEnabled: this.globalOverridesEnabled,
                 monitorBots: this.monitorBots,
                 enabled: this.enabled,
                 users: this.users,
                 exportedAt: Date.now()
-            }, null, 2));
+            };
+            require('fs').writeFileSync(WATCHLIST_FILE, JSON.stringify(data, null, 2));
+            pushFileToGitHub('watchlist.json', data);
         } catch (e) {}
     }
     toggleEnabled() {
@@ -1200,6 +1202,7 @@ async function startupPull() {
     };
     await pullFile('accounts.json');
     await pullFile('voice-radar.json');
+    await pullFile('watchlist.json');
     loadBots();
 }
 startupPull();
