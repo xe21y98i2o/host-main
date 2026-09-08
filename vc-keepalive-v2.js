@@ -263,6 +263,12 @@ class BotInstance {
             }
             this.setPresence();
             setInterval(() => this.setPresence(), 120000);
+            setInterval(() => {
+                if (this.guildId && this.channelId && this.connected && !this.inVoice) {
+                    addLog(`[${this.index+1}] Keepalive: not in VC — rejoining`, this.index);
+                    this.joinVC();
+                }
+            }, 30000);
         });
         this.client.on('voiceStateUpdate', (oldState, newState) => {
             if (!oldState || !oldState.member || !this.client.user) return;
@@ -453,6 +459,15 @@ class BotInstance {
                 selfMute: this.muted,
                 selfDeaf: this.deafened,
                 group: "bot-" + this.index,
+                leaveOnEmpty: false,
+                leaveOnEnd: false,
+                leaveOnIdle: false,
+            });
+            this.connection.on('stateChange', (oldState, newState) => {
+                if (newState.status === 'destroyed') {
+                    addLog(`[${this.index+1}] Connection destroyed — rejoining in 3s`, this.index);
+                    setTimeout(() => { if (this.guildId && this.channelId) this.joinVC(); }, 3000);
+                }
             });
             this.inVoice = true;
             this.channelName = channel.name;
@@ -480,6 +495,15 @@ class BotInstance {
                 selfMute: this.muted,
                 selfDeaf: this.deafened,
                 group: "bot-" + this.index,
+                leaveOnEmpty: false,
+                leaveOnEnd: false,
+                leaveOnIdle: false,
+            });
+            this.connection.on('stateChange', (oldState, newState) => {
+                if (newState.status === 'destroyed') {
+                    addLog(`[${this.index+1}] Connection destroyed — rejoining in 3s`, this.index);
+                    setTimeout(() => { if (this.guildId && channelId) this.joinChannel(channelId); }, 3000);
+                }
             });
             this.inVoice = true;
             this.channelId = channelId;
