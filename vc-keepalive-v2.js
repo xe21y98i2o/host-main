@@ -280,16 +280,12 @@ class BotInstance {
             }
         });
         this.client.on('voiceStateUpdate', (oldState, newState) => {
-            const chId = newState.channelId || oldState.channelId;
-            const trackedIds = Object.keys(voiceRadar.channels);
-            if (trackedIds.length > 0) {
-                console.log(`[VR-DBG] Bot${this.index+1} voiceStateUpdate: old=${oldState.channelId} new=${newState.channelId} member=${(newState.member||oldState.member)?.user?.tag} trackedIds=${trackedIds.join(',')}`);
-            }
             if (!voiceRadar.enabled) return;
             const vrMonitorAllowed = voiceRadar.monitorBots.length === 0 || voiceRadar.monitorBots.includes(this.index);
             if (!vrMonitorAllowed) return;
             const member = newState.member || oldState.member;
             if (!member || member.user.bot) return;
+            const chId = newState.channelId || oldState.channelId;
             if (!chId || !voiceRadar.channels[chId]) return;
             const ch = voiceRadar.channels[chId];
             const events = [];
@@ -820,7 +816,9 @@ function readBody(req) {
 }
 
 const server = http.createServer(async (req, res) => {
-    const p = url.parse(req.url).pathname;
+    const parsed = url.parse(req.url, true);
+    const p = parsed.pathname;
+    const q = parsed.query;
     handleCORS(res);
     if (req.method === 'OPTIONS') return res.end();
     if (p === '/status') return serveStatus(res);
@@ -1148,13 +1146,13 @@ const server = http.createServer(async (req, res) => {
             return res.end(JSON.stringify({ status: 'success', data: ch }));
         } catch (e) { return res.end('{"status":"error","message":"' + e.message + '"}'); }
     }
-    if (p.match(/^\/api\/voiceradar\/remove\/\d+$/) && req.method === 'DELETE') {
+    if (p.match(/^\/api\/voiceradar\/remove\/[\w-]+$/) && req.method === 'DELETE') {
         const chId = p.split('/').pop();
         voiceRadar.removeChannel(chId);
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
         return res.end('{"status":"success"}');
     }
-    if (p.match(/^\/api\/voiceradar\/logs\/\d+$/) && req.method === 'GET') {
+    if (p.match(/^\/api\/voiceradar\/logs\/[\w-]+$/) && req.method === 'GET') {
         const chId = p.split('/').pop();
         const limit = parseInt(q.limit) || 100;
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
