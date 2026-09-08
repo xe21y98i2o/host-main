@@ -1,5 +1,6 @@
 const { Client } = require('discord.js-selfbot-v13');
-const { joinVoiceChannel } = require('@discordjs/voice');
+const { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus, VoiceConnectionStatus, entersState } = require('@discordjs/voice');
+const { Readable } = require('stream');
 const http = require('http');
 const url = require('url');
 
@@ -417,37 +418,26 @@ class BotInstance {
         });
         this.client.login(this.token).catch(e => addLog(`[${this.index+1}] Login failed: ${e.message}`, this.index));
     }
-    _sendVoiceState() {
-        const gid = this.connection?.joinConfig?.guildId || this.guildId;
-        const cid = this.connection?.joinConfig?.channelId || this.channelId;
-        if (!gid || !cid) return;
-        const payload = {
-            op: 4,
-            d: {
-                guild_id: gid,
-                channel_id: cid,
-                self_mute: this.muted,
-                self_deaf: this.deafened,
-                self_stream: this.streaming,
-                self_video: this.camera,
-            },
-        };
-        try {
-            const shards = this.client?.ws?.shards;
-            if (shards) {
-                shards.each(shard => {
-                    try { shard.send(payload); } catch {}
-                });
-            }
-        } catch {}
+    _startSilence(connection) {
+        const SILENCE_FRAME = Buffer.from([0xf8, 0xff, 0xfe]);
+        const makeSilence = () => new Readable({ read() { this.push(SILENCE_FRAME); } });
+        const player = createAudioPlayer();
+        const play = () => { try { player.play(createAudioResource(makeSilence())); } catch {} };
+        connection.subscribe(player);
+        play();
+        if (this._silenceInterval) clearInterval(this._silenceInterval);
+        this._silenceInterval = setInterval(() => {
+            if (connection.state.status === VoiceConnectionStatus.Ready) play();
+        }, 50000);
     }
+    _stopSilence() { if (this._silenceInterval) { clearInterval(this._silenceInterval); this._silenceInterval = null; } }
     async joinVC() {
         const guild = this.client.guilds.cache.get(this.guildId);
         if (!guild) { addLog(`[${this.index+1}] Guild not found`, this.index); return; }
         const channel = guild.channels.cache.get(this.channelId);
         if (!channel) { addLog(`[${this.index+1}] Voice channel not found`, this.index); return; }
         try {
-            if (this.connection) { try { this.connection.destroy(); } catch {} this.connection = null; }
+            if (this.connection) { this._stopSilence(); try { this.connection.destroy(); } catch {} this.connection = null; }
             this.connection = joinVoiceChannel({
                 channelId: channel.id,
                 guildId: channel.guild.id,
@@ -459,10 +449,10 @@ class BotInstance {
                 leaveOnEnd: false,
                 leaveOnIdle: false,
             });
+            this._startSilence(this.connection);
             this.inVoice = true;
             this.channelName = channel.name;
             addLog(`[${this.index+1}] Joined: ${channel.name}`, this.index);
-            setTimeout(() => this._sendVoiceState(), 2000);
         } catch (err) { addLog(`[${this.index+1}] Failed to join: ${err.message}`, this.index); }
     }
     async joinChannel(channelId) {
@@ -477,7 +467,7 @@ class BotInstance {
         if (!channel) return 'Channel not found';
         if (!this.guildId) { this.guildId = guild.id; this.guildName = guild.name; this.saveAccount(); }
         try {
-            if (this.connection) { try { this.connection.destroy(); } catch {} this.connection = null; }
+            if (this.connection) { this._stopSilence(); try { this.connection.destroy(); } catch {} this.connection = null; }
             this.connection = joinVoiceChannel({
                 channelId: channel.id,
                 guildId: channel.guild.id,
@@ -489,15 +479,16 @@ class BotInstance {
                 leaveOnEnd: false,
                 leaveOnIdle: false,
             });
+            this._startSilence(this.connection);
             this.inVoice = true;
             this.channelId = channelId;
             this.channelName = channel.name;
             addLog(`[${this.index+1}] Joined: ${channel.name}`, this.index);
-            setTimeout(() => this._sendVoiceState(), 2000);
             return 'ok';
         } catch (err) { return err.message; }
     }
     leaveVC() {
+        this._stopSilence();
         if (this.connection) {
             try { this.connection.destroy(); } catch {}
             this.connection = null;
@@ -535,22 +526,20 @@ class BotInstance {
     }
     setMute(val) {
         this.muted = val;
-        this._sendVoiceState();
+        if (this.connection) { try { this.connection.rejoin(); } catch {} }
         addLog(`[${this.index+1}] ${val ? 'Muted' : 'Unmuted'}`, this.index);
     }
     setDeaf(val) {
         this.deafened = val;
-        this._sendVoiceState();
+        if (this.connection) { try { this.connection.rejoin(); } catch {} }
         addLog(`[${this.index+1}] ${val ? 'Deafened' : 'Undeafened'}`, this.index);
     }
     setStream(val) {
         this.streaming = val;
-        this._sendVoiceState();
         addLog(`[${this.index+1}] ${val ? 'Streaming ON' : 'Streaming OFF'}`, this.index);
     }
     setCam(val) {
         this.camera = val;
-        this._sendVoiceState();
         addLog(`[${this.index+1}] ${val ? 'Camera ON' : 'Camera OFF'}`, this.index);
     }
     startSpam(channelId, content, interval) {
