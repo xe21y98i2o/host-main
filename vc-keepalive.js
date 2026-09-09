@@ -842,7 +842,24 @@ const server = http.createServer(async (req, res) => {
         const body = await readBody(req);
         try {
             const accounts = textToAccounts(body);
+            const oldTokens = bots.map(b => b.token);
+            const newTokens = accounts.map(a => a.token);
+            const removed = oldTokens.filter(t => !newTokens.includes(t));
+            const added = newTokens.filter(t => !oldTokens.includes(t));
+            removed.forEach(t => {
+                const idx = bots.findIndex(b => b.token === t);
+                if (idx !== -1) { addLog(`Removing bot #${idx + 1}`, idx); bots[idx].destroy(); bots.splice(idx, 1); }
+            });
             await saveAndPushAccounts(accounts);
+            added.forEach(t => {
+                const bot = new BotInstance(t, bots.length);
+                bot.tokenVar = 'ACCOUNT_' + (bots.length + 1);
+                const acct = accounts.find(a => a.token === t);
+                if (acct?.guildId) bot.guildId = acct.guildId;
+                if (acct?.channelId) bot.channelId = acct.channelId;
+                bots.push(bot);
+                addLog(`Added bot #${bots.length}`, bots.length - 1);
+            });
             return res.end('ok');
         } catch (e) { return res.end('error: ' + e.message); }
         return res.end('error');
