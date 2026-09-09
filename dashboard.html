@@ -528,7 +528,7 @@ if(radarLogInterval){clearInterval(radarLogInterval);radarLogInterval=null;}
 if(dashboardInterval){clearInterval(dashboardInterval);dashboardInterval=null;}
 if(s==='dm'){loadDMBots();dmInterval=setInterval(()=>{if(document.getElementById('dmInboxBot')?.value)loadDMs();},3000);}
 if(s==='radar'){loadRadar();radarLogInterval=setInterval(()=>{loadRadarLogs();loadRadarWatchlist();},3000);}
-if(s==='dashboard'){update();loadGuilds();loadAccounts();dashboardInterval=setInterval(()=>{update();},5000);}
+if(s==='dashboard'){update();loadGuilds();loadAccounts();}
 if(s==='logs'){update();dashboardInterval=setInterval(()=>{update();},5000);}
 if(s==='voiceradar'){loadVRGuilds();loadVoiceRadar();vrRefresh=setInterval(()=>{if(vrSelectedChannel)loadVRLogs();},3000);}
 }
