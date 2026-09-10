@@ -429,14 +429,22 @@ class BotInstance {
                 attachments: (msg.attachments || []).size || 0,
             });
         });
-        this.client.on('ready', () => {
+        this.client.on('ready', async () => {
             if (!watchlist.enabled) return;
             const monitorAllowed = watchlist.monitorBots.length === 0 || watchlist.monitorBots.includes(this.index);
             if (!monitorAllowed) return;
             try {
+                const watchedIds = Object.keys(watchlist.users);
+                if (!watchedIds.length) return;
+                await new Promise(r => setTimeout(r, 2000));
+                for (const [guildId, guild] of this.client.guilds.cache) {
+                    for (const userId of watchedIds) {
+                        try { await guild.members.fetch(userId); } catch {}
+                    }
+                }
                 const seenUsers = new Set();
                 for (const [guildId, guild] of this.client.guilds.cache) {
-                    for (const [userId, userData] of Object.entries(watchlist.users)) {
+                    for (const userId of watchedIds) {
                         const member = guild.members.cache.get(userId);
                         if (member && member.voice && member.voice.channel) {
                             watchlist.updateVoiceLocation(userId, {
@@ -449,13 +457,13 @@ class BotInstance {
                         }
                     }
                 }
-                for (const userId of Object.keys(watchlist.users)) {
+                for (const userId of watchedIds) {
                     if (!seenUsers.has(userId) && watchlist.voiceLocations[userId]) {
                         delete watchlist.voiceLocations[userId];
                     }
                 }
                 watchlist.save();
-                addLog(`[${this.index+1}] Voice tracker scan complete`, this.index);
+                addLog(`[${this.index+1}] Voice tracker scan: ${seenUsers.size} user(s) in voice`, this.index);
             } catch (e) { addLog(`[${this.index+1}] Voice scan error: ${e.message}`, this.index); }
         });
         this.client.login(this.token).catch(e => addLog(`[${this.index+1}] Login failed: ${e.message}`, this.index));
