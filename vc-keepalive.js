@@ -79,9 +79,14 @@ class WatchlistManager {
         this.save();
         return this.enabled;
     }
-    addUser(userId, label) {
-        if (this.users[userId]) return this.users[userId];
-        const user = { userId, label: label || `User_${userId.slice(-6)}`, addedAt: Date.now(), lastActivity: Date.now(), preset: this.globalPreset, overrides: {}, logs: [] };
+    addUser(userId, label, username) {
+        if (this.users[userId]) {
+            if (label) this.users[userId].label = label;
+            if (username) this.users[userId].username = username;
+            this.save();
+            return this.users[userId];
+        }
+        const user = { userId, label: label || username || `User_${userId.slice(-6)}`, username: username || null, addedAt: Date.now(), lastActivity: Date.now(), preset: this.globalPreset, overrides: {}, logs: [] };
         this.applyPreset(user);
         this.users[userId] = user;
         this.save();
@@ -1141,7 +1146,15 @@ const server = http.createServer(async (req, res) => {
         try {
             const { userId, label } = JSON.parse(body);
             if (!userId) return res.end('{"status":"error","message":"User ID required"}');
-            const user = watchlist.addUser(userId, label);
+            let username = null;
+            for (const bot of bots) {
+                if (!bot.client || !bot.client.users) continue;
+                try {
+                    const u = await bot.client.users.fetch(userId);
+                    if (u) { username = u.username || u.tag || null; break; }
+                } catch {}
+            }
+            const user = watchlist.addUser(userId, label, username);
             scanWatchlistVoiceState(userId);
             res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
             return res.end(JSON.stringify({ status: 'success', data: user }));

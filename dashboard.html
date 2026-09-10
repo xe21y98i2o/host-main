@@ -866,7 +866,7 @@ return `
 <div style="background:${isSelected?'rgba(255,255,255,0.04)':'var(--gray)'};border:1px solid ${isSelected?'rgba(255,255,255,0.3)':'var(--gray3)'};border-radius:12px;padding:0;transition:all .25s" onmouseover="this.style.borderColor='rgba(255,255,255,0.2)'" onmouseout="if(!${isSelected})this.style.borderColor='var(--gray3)'">
 <div style="padding:16px 18px;display:flex;justify-content:space-between;align-items:start;border-bottom:1px solid rgba(255,255,255,0.04)">
 <div style="flex:1;min-width:0">
-<div style="font-weight:700;font-size:15px;color:var(--white);letter-spacing:-0.3px">${esc(u.label)}</div>
+<div style="font-weight:700;font-size:15px;color:var(--white);letter-spacing:-0.3px">${u.username?'<span style="color:var(--dim);font-weight:400;font-size:12px">@'+esc(u.username)+'</span> ':''}${esc(u.label)}</div>
 <div style="font-size:11px;color:var(--dim);font-family:monospace;margin-top:3px">${u.userId}</div>
 <div style="display:flex;gap:14px;font-size:11px;color:var(--dim);margin-top:6px">
 <span style="display:flex;align-items:center;gap:4px"><span style="width:5px;height:5px;border-radius:50%;background:${(u.logCount||0)>0?'var(--white)':'var(--gray3)'}"></span>${timeAgoRadar(u.lastActivity)}</span>
@@ -972,7 +972,7 @@ box.innerHTML=entries.map(([userId,loc])=>{
 const dur=Date.now()-(loc.since||0);const m=Math.floor(dur/60000);const h=Math.floor(m/60);
 const timeStr=h>0?h+'h '+m%60+'m':m>0?m+'m':'just now';
 const user=radarUsers.find(u=>u.userId===userId);
-const name=user?user.label:userId;
+const name=user?(user.username?'@'+user.username+' ':'' )+user.label:userId;
 return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.15);margin-bottom:6px">
 <div style="width:8px;height:8px;border-radius:50%;background:#00ff88;box-shadow:0 0 6px rgba(0,255,136,0.5);flex-shrink:0;animation:glowPulse 2s infinite"></div>
 <div style="flex:1;min-width:0"><div style="color:var(--white);font-weight:600;font-size:12px">${esc(name)}</div>
@@ -1046,7 +1046,7 @@ const hdr=document.getElementById('radarLogHeader');
 if(!hdr)return;
 if(radarSelectedUser){
 const u=radarUsers.find(u=>u.userId===radarSelectedUser);
-const name=u?u.label:radarSelectedUser;
+const name=u?(u.username?'@'+u.username+' ':'' )+u.label:radarSelectedUser;
 hdr.innerHTML=`<div style="display:flex;align-items:center;gap:10px"><div style="width:8px;height:8px;border-radius:50%;background:var(--white);box-shadow:0 0 8px rgba(255,255,255,0.5)"></div><span style="font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase">${esc(name)}</span><span style="font-size:11px;color:var(--dim)">logs</span></div><div style="display:flex;gap:8px;align-items:center"><span style="font-size:11px;color:var(--dim);font-family:monospace" id="radarLogCount">0 events</span><button onclick="selectRadarUser('${radarSelectedUser}')" style="padding:4px 12px;border-radius:6px;border:1px solid var(--gray3);background:transparent;color:var(--dim);font-size:11px;cursor:pointer;font-family:Inter,sans-serif;transition:all .2s">Show All</button></div>`;
 }else{
 hdr.innerHTML=`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim)">Activity Log</span></div><span style="font-size:11px;color:var(--dim)">Click 👁 Logs on a user</span>`;
