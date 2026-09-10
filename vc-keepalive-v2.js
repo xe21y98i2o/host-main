@@ -1278,6 +1278,8 @@ async function startupPull() {
     await pullFile('accounts.json');
     await pullFile('voice-radar.json');
     await pullFile('watchlist.json');
+    watchlist.load();
+    voiceRadar.load();
     loadBots();
 }
 startupPull();
