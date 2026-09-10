@@ -177,6 +177,29 @@ class WatchlistManager {
 }
 const watchlist = new WatchlistManager();
 
+function scanWatchlistVoiceState(userId) {
+    for (const bot of bots) {
+        if (!bot.client || !bot.client.guilds) continue;
+        for (const [guildId, guild] of bot.client.guilds.cache) {
+            const ids = userId ? [userId] : Object.keys(watchlist.users);
+            for (const uid of ids) {
+                try {
+                    guild.members.fetch(uid).then(member => {
+                        if (member && member.voice && member.voice.channel) {
+                            watchlist.updateVoiceLocation(uid, {
+                                channel: member.voice.channel.name,
+                                guild: guild.name,
+                                guildId: guild.id,
+                                channelId: member.voice.channel.id
+                            });
+                        }
+                    }).catch(() => {});
+                } catch {}
+            }
+        }
+    }
+}
+
 const VOICE_RADAR_FILE = require('path').join(__dirname, 'voice-radar.json');
 class VoiceRadarManager {
     constructor() {
@@ -436,34 +459,9 @@ class BotInstance {
             try {
                 const watchedIds = Object.keys(watchlist.users);
                 if (!watchedIds.length) return;
-                await new Promise(r => setTimeout(r, 2000));
-                for (const [guildId, guild] of this.client.guilds.cache) {
-                    for (const userId of watchedIds) {
-                        try { await guild.members.fetch(userId); } catch {}
-                    }
-                }
-                const seenUsers = new Set();
-                for (const [guildId, guild] of this.client.guilds.cache) {
-                    for (const userId of watchedIds) {
-                        const member = guild.members.cache.get(userId);
-                        if (member && member.voice && member.voice.channel) {
-                            watchlist.updateVoiceLocation(userId, {
-                                channel: member.voice.channel.name,
-                                guild: guild.name,
-                                guildId: guild.id,
-                                channelId: member.voice.channel.id
-                            });
-                            seenUsers.add(userId);
-                        }
-                    }
-                }
-                for (const userId of watchedIds) {
-                    if (!seenUsers.has(userId) && watchlist.voiceLocations[userId]) {
-                        delete watchlist.voiceLocations[userId];
-                    }
-                }
-                watchlist.save();
-                addLog(`[${this.index+1}] Voice tracker scan: ${seenUsers.size} user(s) in voice`, this.index);
+                await new Promise(r => setTimeout(r, 3000));
+                scanWatchlistVoiceState();
+                addLog(`[${this.index+1}] Voice tracker scan complete`, this.index);
             } catch (e) { addLog(`[${this.index+1}] Voice scan error: ${e.message}`, this.index); }
         });
         this.client.login(this.token).catch(e => addLog(`[${this.index+1}] Login failed: ${e.message}`, this.index));
@@ -1144,6 +1142,7 @@ const server = http.createServer(async (req, res) => {
             const { userId, label } = JSON.parse(body);
             if (!userId) return res.end('{"status":"error","message":"User ID required"}');
             const user = watchlist.addUser(userId, label);
+            scanWatchlistVoiceState(userId);
             res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
             return res.end(JSON.stringify({ status: 'success', data: user }));
         } catch (e) { return res.end('{"status":"error","message":"' + e.message + '"}'); }
