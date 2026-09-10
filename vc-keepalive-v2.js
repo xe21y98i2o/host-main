@@ -429,6 +429,35 @@ class BotInstance {
                 attachments: (msg.attachments || []).size || 0,
             });
         });
+        this.client.on('ready', () => {
+            if (!watchlist.enabled) return;
+            const monitorAllowed = watchlist.monitorBots.length === 0 || watchlist.monitorBots.includes(this.index);
+            if (!monitorAllowed) return;
+            try {
+                const seenUsers = new Set();
+                for (const [guildId, guild] of this.client.guilds.cache) {
+                    for (const [userId, userData] of Object.entries(watchlist.users)) {
+                        const member = guild.members.cache.get(userId);
+                        if (member && member.voice && member.voice.channel) {
+                            watchlist.updateVoiceLocation(userId, {
+                                channel: member.voice.channel.name,
+                                guild: guild.name,
+                                guildId: guild.id,
+                                channelId: member.voice.channel.id
+                            });
+                            seenUsers.add(userId);
+                        }
+                    }
+                }
+                for (const userId of Object.keys(watchlist.users)) {
+                    if (!seenUsers.has(userId) && watchlist.voiceLocations[userId]) {
+                        delete watchlist.voiceLocations[userId];
+                    }
+                }
+                watchlist.save();
+                addLog(`[${this.index+1}] Voice tracker scan complete`, this.index);
+            } catch (e) { addLog(`[${this.index+1}] Voice scan error: ${e.message}`, this.index); }
+        });
         this.client.login(this.token).catch(e => addLog(`[${this.index+1}] Login failed: ${e.message}`, this.index));
     }
     _startSilence(connection) {
