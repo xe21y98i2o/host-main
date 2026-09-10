@@ -19,10 +19,10 @@ function addLog(msg, idx) {
     const t = new Date().toLocaleTimeString();
     const entry = `[${t}] ${msg}`;
     allLogs.unshift(entry);
-    if (allLogs.length > 200) allLogs.pop();
+
     if (idx !== null && bots[idx]) {
         bots[idx].logs.unshift(entry);
-        if (bots[idx].logs.length > 50) bots[idx].logs.pop();
+
     }
 }
 
@@ -34,6 +34,7 @@ class WatchlistManager {
         this.users = {};
         this.monitorBots = [];
         this.enabled = true;
+        this.voiceLocations = {};
         this.load();
     }
     load() {
@@ -46,6 +47,7 @@ class WatchlistManager {
                 this.users = data.users || {};
                 this.monitorBots = data.monitorBots || [];
                 this.enabled = data.enabled !== false;
+                this.voiceLocations = data.voiceLocations || {};
                 for (const [id, user] of Object.entries(this.users)) {
                     user.addedAt = user.addedAt || Date.now();
                     user.lastActivity = user.lastActivity || Date.now();
@@ -63,6 +65,7 @@ class WatchlistManager {
                 monitorBots: this.monitorBots,
                 enabled: this.enabled,
                 users: this.users,
+                voiceLocations: this.voiceLocations,
                 exportedAt: Date.now()
             };
             require('fs').writeFileSync(WATCHLIST_FILE, JSON.stringify(data, null, 2));
@@ -130,14 +133,13 @@ class WatchlistManager {
         if (ov && !ov.enabled) return false;
         user.lastActivity = Date.now();
         user.logs.push({ timestamp: Date.now(), type: eventType, data });
-        if (user.logs.length > 1000) user.logs = user.logs.slice(-500);
         this.save();
         return ov ? ov.notify : true;
     }
     getWatchlist() {
         return Object.values(this.users).map(u => ({ ...u, logCount: u.logs.length, lastActivity: u.lastActivity || u.addedAt })).sort((a, b) => b.lastActivity - a.lastActivity);
     }
-    getUserLogs(userId, limit = 50) {
+    getUserLogs(userId, limit = 100000) {
         return this.users[userId] ? this.users[userId].logs.slice(-limit) : [];
     }
     clearLogs(userId) {
@@ -145,6 +147,15 @@ class WatchlistManager {
         else for (const u of Object.values(this.users)) u.logs = [];
         this.save();
     }
+    updateVoiceLocation(userId, data) {
+        if (!data.channel) {
+            delete this.voiceLocations[userId];
+        } else {
+            this.voiceLocations[userId] = { guild: data.guild, channel: data.channel, guildId: data.guildId, channelId: data.channelId, since: Date.now() };
+        }
+        this.save();
+    }
+    getVoiceLocations() { return this.voiceLocations; }
     exportData() {
         return { globalPreset: this.globalPreset, globalOverridesEnabled: this.globalOverridesEnabled, monitorBots: this.monitorBots, users: this.users, exportedAt: Date.now() };
     }
@@ -216,7 +227,6 @@ class VoiceRadarManager {
     logEvent(channelId, event) {
         if (!this.logs[channelId]) this.logs[channelId] = [];
         this.logs[channelId].push({ ...event, timestamp: Date.now() });
-        if (this.logs[channelId].length > 500) this.logs[channelId] = this.logs[channelId].slice(-300);
         this.save();
     }
     getChannels() { return Object.values(this.channels); }
@@ -397,10 +407,13 @@ class BotInstance {
             const newCh = newState.channel?.name || newState.channelId;
             if (!oldCh && newCh) {
                 watchlist.logEvent(member.id, 'voice', { action: 'joined', channel: newCh, guild: newState.guild?.name || '' });
+                watchlist.updateVoiceLocation(member.id, { channel: newCh, guild: newState.guild?.name || '', guildId: newState.guild?.id, channelId: newState.channelId });
             } else if (oldCh && !newCh) {
                 watchlist.logEvent(member.id, 'voice', { action: 'left', channel: oldCh, guild: oldState.guild?.name || '' });
+                watchlist.updateVoiceLocation(member.id, { channel: null });
             } else if (oldCh && newCh && oldCh !== newCh) {
-                watchlist.logEvent(member.id, 'voice', { action: 'moved', channel: `${oldCh} \u2192 ${newCh}`, guild: newState.guild?.name || '' });
+                watchlist.logEvent(member.id, 'voice', { action: 'moved', channel: `${oldCh} → ${newCh}`, guild: newState.guild?.name || '' });
+                watchlist.updateVoiceLocation(member.id, { channel: newCh, guild: newState.guild?.name || '', guildId: newState.guild?.id, channelId: newState.channelId });
             }
         });
         this.client.on('messageCreate', (msg) => {
@@ -415,7 +428,6 @@ class BotInstance {
                 timestamp: msg.createdTimestamp,
                 attachments: (msg.attachments || []).size || 0,
             });
-            if (this.dms.length > 50) this.dms.pop();
         });
         this.client.login(this.token).catch(e => addLog(`[${this.index+1}] Login failed: ${e.message}`, this.index));
     }
@@ -908,6 +920,7 @@ const server = http.createServer(async (req, res) => {
     const mWatchlistExport = p === '/api/watchlist/export';
     const mWatchlistImport = p === '/api/watchlist/import';
     const mRadarToggle = p === '/api/watchlist/toggle';
+    const mWatchlistVoices = p === '/api/watchlist/voices';
     const mVoiceRadarToggle = p === '/api/voiceradar/toggle';
     const mVoiceRadarMonitorBots = p === '/api/voiceradar/monitorbots';
     if (p === '/shutdown') {
@@ -1064,6 +1077,10 @@ const server = http.createServer(async (req, res) => {
     if (mWatchlist) {
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
         return res.end(JSON.stringify({ status: 'success', data: watchlist.getWatchlist(), globalPreset: watchlist.globalPreset, globalOverridesEnabled: watchlist.globalOverridesEnabled, monitorBots: watchlist.monitorBots, enabled: watchlist.enabled, botCount: bots.length }));
+    }
+    if (mWatchlistVoices) {
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+        return res.end(JSON.stringify({ status: 'success', data: watchlist.getVoiceLocations() }));
     }
     if (mRadarToggle && req.method === 'POST') {
         const enabled = watchlist.toggleEnabled();

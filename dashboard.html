@@ -452,6 +452,14 @@ Select All
 <div style="font-size:11px;color:var(--dim);margin-top:8px" id="radarPresetWarning"></div>
 </div>
 
+<div style="background:var(--gray2);border:1px solid var(--gray3);border-radius:12px;padding:16px 20px">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+<div style="width:8px;height:8px;border-radius:50%;background:#00ff88;box-shadow:0 0 8px rgba(0,255,136,0.5);animation:glowPulse 2s infinite"></div>
+<span style="font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--white)">Live Voice Tracker</span>
+</div>
+<div id="radarVoiceTracker" style="font-size:12px;color:var(--dim);min-height:30px">Loading...</div>
+</div>
+
 <div style="background:var(--gray2);border:1px solid var(--gray3);border-radius:12px;flex:1;display:flex;flex-direction:column;overflow:hidden">
 <div style="padding:16px 20px;border-bottom:1px solid var(--gray3);display:flex;align-items:center;justify-content:space-between;background:var(--gray)" id="radarLogHeader">
 <div style="display:flex;align-items:center;gap:10px">
@@ -527,7 +535,7 @@ if(dmInterval){clearInterval(dmInterval);dmInterval=null;}
 if(radarLogInterval){clearInterval(radarLogInterval);radarLogInterval=null;}
 if(dashboardInterval){clearInterval(dashboardInterval);dashboardInterval=null;}
 if(s==='dm'){loadDMBots();dmInterval=setInterval(()=>{if(document.getElementById('dmInboxBot')?.value)loadDMs();},3000);}
-if(s==='radar'){loadRadar();radarLogInterval=setInterval(()=>{loadRadarLogs();loadRadarWatchlist();},3000);}
+if(s==='radar'){loadRadar();radarLogInterval=setInterval(()=>{loadRadarLogs();loadRadarWatchlist();loadRadarVoiceTracker();},3000);}
 if(s==='dashboard'){update();loadGuilds();loadAccounts();}
 if(s==='logs'){update();dashboardInterval=setInterval(()=>{update();},5000);}
 if(s==='voiceradar'){loadVRGuilds();loadVoiceRadar();vrRefresh=setInterval(()=>{if(vrSelectedChannel)loadVRLogs();},3000);}
@@ -809,6 +817,7 @@ updateRadarPresetWarning();
 renderRadarBots(botCount,monitorBots);
 renderRadarUsers();
 updateLogHeader();
+loadRadarVoiceTracker();
 radarRefresh=setInterval(loadRadarWatchlist,5000);
 loadRadarLogs();
 }
@@ -930,7 +939,7 @@ return;
 for(const u of users){
 if(u.userId!==radarSelectedUser)continue;
 if(!u.logs||!u.logs.length)continue;
-const recent=u.logs.slice(-50);
+const recent=u.logs.slice(-500);
 totalLogs+=recent.length;
 for(const l of recent){
 const d2=new Date(l.timestamp);
@@ -951,6 +960,25 @@ html+=`<div style="padding:8px 16px;border-bottom:1px solid rgba(255,255,255,0.0
 }
 if(countEl)countEl.textContent=totalLogs+' events';
 box.innerHTML=html||'<div style="padding:40px;color:var(--dim);text-align:center;font-size:13px">Waiting for events...</div>';
+}
+async function loadRadarVoiceTracker(){
+const r=await fetch('/api/watchlist/voices').catch(()=>null);if(!r)return;
+const d=await r.json();if(d.status!=='success')return;
+const box=document.getElementById('radarVoiceTracker');if(!box)return;
+const locs=d.data||{};
+const entries=Object.entries(locs);
+if(!entries.length){box.innerHTML='<div style="color:var(--dim);font-size:11px;text-align:center;padding:8px">No users in voice channels</div>';return;}
+box.innerHTML=entries.map(([userId,loc])=>{
+const dur=Date.now()-(loc.since||0);const m=Math.floor(dur/60000);const h=Math.floor(m/60);
+const timeStr=h>0?h+'h '+m%60+'m':m>0?m+'m':'just now';
+const user=radarUsers.find(u=>u.userId===userId);
+const name=user?user.label:userId;
+return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.15);margin-bottom:6px">
+<div style="width:8px;height:8px;border-radius:50%;background:#00ff88;box-shadow:0 0 6px rgba(0,255,136,0.5);flex-shrink:0;animation:glowPulse 2s infinite"></div>
+<div style="flex:1;min-width:0"><div style="color:var(--white);font-weight:600;font-size:12px">${esc(name)}</div>
+<div style="color:var(--dim);font-size:10px;margin-top:2px">\u25B8 ${esc(loc.guild||'Unknown')} \u2022 <span style="color:var(--white)">#${esc(loc.channel)}</span></div></div>
+<div style="color:var(--dim);font-size:10px;text-align:right;flex-shrink:0">in VC<br><span style="color:#00ff88">${timeStr}</span></div></div>`;
+}).join('');
 }
 async function addRadarUser(){
 const userId=document.getElementById('radarUserId')?.value?.trim();
